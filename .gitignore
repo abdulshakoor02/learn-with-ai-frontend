@@ -39,3 +39,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.claude
+.claude-flow
+.hive-mind
+.swarm
+coordination/
+docs/
+.mcp.json
+.claude-flow
+.claude-flow.bat
+!README.md
+*.md
+claude-flow.ps1
+claude-flow
+claude-flow.bat
+claude-flow.config.json
+.claude-flow.pid
+scripts/
+memory/
+opencode.json
