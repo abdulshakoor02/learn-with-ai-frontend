@@ -10,8 +10,8 @@ import {
   ChartBarIcon,
   CodeBracketIcon
 } from '@heroicons/react/24/outline'
-import { floatingAnimation } from '../../utils/animations'
 
+// Static data for SSR - no random values
 const floatingElements = [
   {
     icon: CpuChipIcon,
@@ -63,23 +63,37 @@ const floatingElements = [
   }
 ]
 
-// Helper function to generate particles
-const generateParticles = () => Array.from({ length: 12 }, (_, i) => ({
+// Static particles for SSR
+const staticParticles = Array.from({ length: 6 }, (_, i) => ({
   id: i,
-  size: Math.random() * 4 + 2,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  delay: Math.random() * 3,
-  duration: Math.random() * 4 + 6
+  size: 3 + (i % 3), // Fixed sizes: 3, 4, 5, 3, 4, 5
+  x: 10 + (i * 15), // Fixed positions: 10%, 25%, 40%, 55%, 70%, 85%
+  y: 20 + (i * 12), // Fixed positions: 20%, 32%, 44%, 56%, 68%, 80%
+  delay: i * 0.5, // Fixed delays: 0, 0.5, 1.0, 1.5, 2.0, 2.5
+  duration: 8 + (i % 3) // Fixed durations: 8, 9, 10, 8, 9, 10
 }))
 
-// Helper function to generate SVG paths
-const generateSVGPaths = () => [1, 2, 3, 4, 5].map((line) => ({
-  id: line,
-  path: `M${Math.random() * 400},${Math.random() * 400} Q${Math.random() * 400},${Math.random() * 400} ${Math.random() * 400},${Math.random() * 400}`,
-  delay: line * 0.5,
-  duration: 6 + line
-}))
+// Static SVG paths for SSR
+const staticSvgPaths = [
+  {
+    id: 1,
+    path: 'M50,50 Q200,100 350,150',
+    delay: 0.5,
+    duration: 7
+  },
+  {
+    id: 2,
+    path: 'M100,200 Q250,50 400,200',
+    delay: 1.0,
+    duration: 8
+  },
+  {
+    id: 3,
+    path: 'M200,300 Q100,150 300,100',
+    delay: 1.5,
+    duration: 9
+  }
+]
 
 export const HeroAnimation = () => {
   const [aiParticles, setAiParticles] = useState<Array<{
@@ -89,51 +103,118 @@ export const HeroAnimation = () => {
     y: number;
     delay: number;
     duration: number;
-  }>>([]);
+  }>>(staticParticles); // Start with static particles to match SSR
   
   const [svgPaths, setSvgPaths] = useState<Array<{
     id: number;
     path: string;
     delay: number;
     duration: number;
-  }>>([]);
+  }>>(staticSvgPaths); // Start with static paths to match SSR
   
   const [isClient, setIsClient] = useState(false);
   
+  // Helper function to generate particles
+  const generateParticles = () => Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    size: Math.random() * 4 + 2,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    delay: Math.random() * 3,
+    duration: Math.random() * 4 + 6
+  }))
+
+  // Helper function to generate SVG paths
+  const generateSVGPaths = () => [1, 2, 3, 4, 5].map((line) => ({
+    id: line,
+    path: `M${Math.random() * 400},${Math.random() * 400} Q${Math.random() * 400},${Math.random() * 400} ${Math.random() * 400},${Math.random() * 400}`,
+    delay: line * 0.5,
+    duration: 6 + line
+  }))
+
   useEffect(() => {
-    // Generate random values only on client side
-    setAiParticles(generateParticles());
-    setSvgPaths(generateSVGPaths());
-    setIsClient(true);
+    // Generate random values only on client side after hydration
+    const timer = setTimeout(() => {
+      setAiParticles(generateParticles());
+      setSvgPaths(generateSVGPaths());
+      setIsClient(true);
+    }, 0); // Use setTimeout to ensure this runs after hydration
+    return () => clearTimeout(timer);
   }, []);
   
   // Don't render dynamic content until client-side hydration is complete
   if (!isClient) {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Only render static content during SSR */}
+        {/* Render static content during SSR that matches client structure */}
         {floatingElements.map((element, index) => (
-          <motion.div
+          <div
             key={index}
             className="absolute"
-            style={element.position}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: [0, 1, 1, 0],
-              scale: [0, 1.2, 1, 0],
-              y: [-20, 20, -20]
-            }}
-            transition={{
-              duration: element.duration,
-              delay: element.delay,
-              repeat: Infinity,
-              ease: 'easeInOut'
+            style={{
+              ...element.position,
+              opacity: 0,
+              transform: 'scale(0)'
             }}
           >
             <div className="glass-primary p-3 rounded-xl backdrop-blur-sm">
               <element.icon className={`${element.size} ${element.color}`} />
             </div>
-          </motion.div>
+          </div>
+        ))}
+        
+        {/* Render static particles for SSR - use exact same values as staticParticles */}
+        {staticParticles.map((particle) => (
+          <div
+            key={particle.id}
+            className="absolute rounded-full bg-primary-400 bg-opacity-30"
+            style={{
+              width: `${particle.size}px`,
+              height: `${particle.size}px`,
+              left: `${particle.x}%`,
+              top: `${particle.y}%`,
+              opacity: 0.3
+            }}
+          />
+        ))}
+        
+        {/* Render static SVG paths for SSR */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="rgba(124, 58, 237, 0.4)" />
+              <stop offset="50%" stopColor="rgba(59, 130, 246, 0.4)" />
+              <stop offset="100%" stopColor="rgba(245, 158, 11, 0.4)" />
+            </linearGradient>
+          </defs>
+          
+          {staticSvgPaths.map((pathData) => (
+            <path
+              key={pathData.id}
+              d={pathData.path}
+              stroke="url(#lineGradient)"
+              strokeWidth="2"
+              fill="none"
+              strokeDasharray="5,5"
+              opacity="0"
+            />
+          ))}
+        </svg>
+        
+        {/* Render minimal static content for other elements */}
+        {[1, 2, 3, 4].map((node) => (
+          <div
+            key={node}
+            className="absolute w-4 h-4 rounded-full bg-primary-400 bg-opacity-60"
+            style={{
+              left: `${15 + node * 20}%`,
+              top: `${30 + node * 15}%`,
+              opacity: 0.6
+            }}
+          />
         ))}
       </div>
     );

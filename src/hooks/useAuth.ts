@@ -55,14 +55,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   error: null,
   
   login: async (credentials: LoginCredentials) => {
+    console.log('Login called with:', credentials)
     set({ isLoading: true, error: null })
     try {
       const user = await authService.login(credentials)
+      console.log('Auth service returned user:', user)
       set({ user, isAuthenticated: true, isLoading: false })
+      console.log('Auth state updated to authenticated')
     } catch (error) {
-      set({ 
-        error: error instanceof Error ? error.message : 'Login failed', 
-        isLoading: false 
+      console.log('Login failed:', error)
+      set({
+        error: error instanceof Error ? error.message : 'Login failed',
+        isLoading: false
       })
     }
   },
@@ -106,7 +110,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
   
-  clearError: () => set({ error: null })
+  clearError: () => set({ error: null }),
+  
+  setAuthenticated: (authenticated: boolean) => set({ isAuthenticated: authenticated }),
+  setUser: (user: User | null) => set({ user })
 }))
 
 // Custom hook for easier usage

@@ -13,6 +13,7 @@ import { motion } from 'framer-motion'
 export default function LandingPage() {
   const { isPageLoading } = useLoading()
 
+  // Authentication disabled - remove redirect logic and debug panel
   if (isPageLoading) {
     return <FullScreenLoading message="Welcome to LearnAI" />
   }
@@ -29,7 +30,7 @@ export default function LandingPage() {
           <HeroSection />
           
           {/* Features Section */}
-          <FeaturesGrid className="bg-gradient-to-b from-transparent via-black/50 to-transparent" />
+          <FeaturesGrid />
           
           {/* Social Proof Sections */}
           <div className="bg-gradient-to-b from-transparent via-primary-900/5 to-transparent">
@@ -40,7 +41,7 @@ export default function LandingPage() {
           </div>
           
           {/* Pricing Section */}
-          <PricingSection className="bg-gradient-to-b from-transparent via-blue-900/5 to-black/20" />
+          <PricingSection />
         </main>
         
         {/* Footer */}

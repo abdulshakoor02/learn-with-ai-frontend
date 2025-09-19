@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, Sora, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
+import { AuthProvider } from "@/components/auth/AuthProvider"
 
 const inter = Inter({
   variable: "--font-inter",
@@ -104,7 +105,9 @@ export default function RootLayout({
           inter.variable
         } ${sora.variable} ${jetbrainsMono.variable} font-sans antialiased overflow-x-hidden`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

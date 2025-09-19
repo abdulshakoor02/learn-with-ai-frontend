@@ -9,6 +9,7 @@ import { loginSchema, type LoginFormData } from '../../utils/validation'
 import { useAuthContext } from './AuthProvider'
 import { Button, Input, LoadingSpinner } from '../ui'
 import { cn } from '../../utils/cn'
+import { useRouter } from 'next/navigation'
 
 interface LoginFormProps {
   onSwitchToRegister: () => void
@@ -16,13 +17,14 @@ interface LoginFormProps {
   onClose: () => void
 }
 
-export const LoginForm = ({ 
-  onSwitchToRegister, 
-  onForgotPassword, 
-  onClose 
+export const LoginForm = ({
+  onSwitchToRegister,
+  onForgotPassword,
+  onClose
 }: LoginFormProps) => {
   const { login, isLoading, error, clearError } = useAuthContext()
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
 
   const {
     register,
@@ -39,9 +41,14 @@ export const LoginForm = ({
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      console.log('Login form submitted with:', data)
       clearError()
       await login(data)
+      console.log('Login successful')
       onClose()
+      // Navigate to home after successful login
+      console.log('Navigating to /home')
+      router.push('/home')
     } catch (err) {
       // Error is handled by the auth store
       console.error('Login error:', err)

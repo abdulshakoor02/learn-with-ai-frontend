@@ -36,6 +36,8 @@ export interface AuthActions {
   logout: () => Promise<void>
   resetPassword: (email: string) => Promise<void>
   clearError: () => void
+  setAuthenticated: (authenticated: boolean) => void
+  setUser: (user: User | null) => void
 }
 
 export interface OAuthProvider {
