@@ -1,6 +1,5 @@
 'use client'
 
-import { AuthProvider } from '../components/auth'
 import { Header, Footer } from '../components/layout'
 import { HeroSection } from '../components/hero'
 import { FeaturesGrid } from '../components/features'
@@ -19,38 +18,36 @@ export default function LandingPage() {
   }
 
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-black text-white page-transition">
-        {/* Fixed Header */}
-        <Header />
+    <div className="min-h-screen bg-black text-white page-transition">
+      {/* Fixed Header */}
+      <Header />
+      
+      {/* Main Content */}
+      <main className="relative">
+        {/* Hero Section */}
+        <HeroSection />
         
-        {/* Main Content */}
-        <main className="relative">
-          {/* Hero Section */}
-          <HeroSection />
-          
-          {/* Features Section */}
-          <FeaturesGrid />
-          
-          {/* Social Proof Sections */}
-          <div className="bg-gradient-to-b from-transparent via-primary-900/5 to-transparent">
-            <StatisticsPanel />
-            <ClientLogos />
-            <TestimonialSection />
-            <ReviewBadges />
-          </div>
-          
-          {/* Pricing Section */}
-          <PricingSection />
-        </main>
+        {/* Features Section */}
+        <FeaturesGrid />
         
-        {/* Footer */}
-        <Footer />
+        {/* Social Proof Sections */}
+        <div className="bg-gradient-to-b from-transparent via-primary-900/5 to-transparent">
+          <StatisticsPanel />
+          <ClientLogos />
+          <TestimonialSection />
+          <ReviewBadges />
+        </div>
         
-        {/* Scroll to Top Button */}
-        <ScrollToTopButton />
-      </div>
-    </AuthProvider>
+        {/* Pricing Section */}
+        <PricingSection />
+      </main>
+      
+      {/* Footer */}
+      <Footer />
+      
+      {/* Scroll to Top Button */}
+      <ScrollToTopButton />
+    </div>
   )
 }
 

@@ -1,14 +1,27 @@
 'use client'
 
+import { SessionProvider, useSession } from 'next-auth/react'
 import { LearningNav } from '@/components/layout/LearningNav'
-import { FullScreenLoading } from '@/components/ui'
+import { FullScreenLoading } from '@/components/ui/LoadingStates'
 
-export default function HomeLayout({
+function AuthenticatedHomeLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Authentication disabled - allow direct access to all routes
+  const { data: session, status } = useSession()
+
+  // Show loading spinner while checking authentication
+  if (status === 'loading') {
+    return <FullScreenLoading message="Loading your dashboard..." />
+  }
+
+  // Session should exist due to middleware protection
+  // but handle edge cases gracefully
+  if (status === 'unauthenticated') {
+    return <FullScreenLoading message="Redirecting to login..." />
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <div className="flex h-screen">
@@ -23,5 +36,19 @@ export default function HomeLayout({
         </main>
       </div>
     </div>
+  )
+}
+
+export default function HomeLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <SessionProvider>
+      <AuthenticatedHomeLayout>
+        {children}
+      </AuthenticatedHomeLayout>
+    </SessionProvider>
   )
 }

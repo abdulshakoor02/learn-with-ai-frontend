@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { Modal } from '../ui'
-import { LoginForm } from './LoginForm'
-import { RegisterForm } from './RegisterForm'
-import { ForgotPasswordForm } from './ForgotPasswordForm'
+import { ModalLoginForm } from './ModalLoginForm'
+import { ModalRegisterForm } from './ModalRegisterForm'
+import { ModalForgotPasswordForm } from './ModalForgotPasswordForm'
 import { type AuthModalView } from '../../types/auth'
 
 interface AuthModalProps {
@@ -55,7 +55,7 @@ export const AuthModal = ({
       <div className="relative overflow-hidden">
         <AnimatePresence mode="wait">
           {currentView === 'login' && (
-            <LoginForm
+            <ModalLoginForm
               key="login"
               onSwitchToRegister={handleSwitchToRegister}
               onForgotPassword={handleSwitchToForgotPassword}
@@ -64,7 +64,7 @@ export const AuthModal = ({
           )}
           
           {currentView === 'register' && (
-            <RegisterForm
+            <ModalRegisterForm
               key="register"
               onSwitchToLogin={handleSwitchToLogin}
               onClose={onClose}
@@ -72,7 +72,7 @@ export const AuthModal = ({
           )}
           
           {currentView === 'forgot-password' && (
-            <ForgotPasswordForm
+            <ModalForgotPasswordForm
               key="forgot-password"
               onSwitchToLogin={handleSwitchToLogin}
               onClose={onClose}

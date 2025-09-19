@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useScrollTrigger } from '../../hooks/useScrollAnimation'
-import { AuthButtons } from '../auth'
-import { AuthModal } from '../auth'
+import { AuthButtons, AuthModal } from '../auth'
 import { GradientText, Button } from '../ui'
 import { cn } from '../../utils/cn'
 
@@ -178,6 +177,7 @@ export const Header = ({ className }: HeaderProps) => {
           )}
         </AnimatePresence>
       </motion.header>
+
 
       {/* Auth Modal */}
       <AuthModal

@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { signOut, useSession } from 'next-auth/react'
 import { HomeIcon, BookOpenIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
-import { useAuthContext } from '@/components/auth/AuthProvider'
 
 const navigationItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
@@ -14,13 +14,15 @@ const navigationItems = [
 
 export const LearningNav = () => {
   const pathname = usePathname()
-  const { user, logout } = useAuthContext()
+  const router = useRouter()
+  const { data: session } = useSession()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   const handleLogout = async () => {
     setIsLoggingOut(true)
     try {
-      await logout()
+      await signOut({ redirect: false })
+      router.push('/')
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
@@ -86,18 +88,14 @@ export const LearningNav = () => {
         <div className="p-4 border-t border-white/20">
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user.firstName} className="w-10 h-10 rounded-full" />
-              ) : (
-                <UserCircleIcon className="w-6 h-6 text-white" />
-              )}
+              <UserCircleIcon className="w-6 h-6 text-white" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {user?.firstName} {user?.lastName}
+                {session?.user?.name || 'User'}
               </p>
               <p className="text-xs text-white/70 truncate">
-                {user?.email}
+                {session?.user?.email}
               </p>
             </div>
           </div>
