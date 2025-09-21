@@ -1,17 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EnhancedChatInterface } from '@/components/chat/EnhancedChatInterface'
 import { LearningTimeline } from '@/components/timeline/LearningTimeline'
 import { SparklesIcon, StarIcon } from '@heroicons/react/24/outline'
 import { LearningPlanData } from '@/lib/hooks'
+import { AuthUtils } from '@/services/authUtils'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
   const [showTimeline, setShowTimeline] = useState(false)
   const [learningGoals, setLearningGoals] = useState<string[]>([])
   const [selectedPlan, setSelectedPlan] = useState<LearningPlanData | null>(null)
   const [createdPlan, setCreatedPlan] = useState<LearningPlanData | null>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Check if user is authenticated on mount
+    const checkAuth = async () => {
+      const userData = await AuthUtils.getUserDataAsync()
+      if (!userData) {
+        // Redirect to login if not authenticated
+        router.push('/home/login')
+        return
+      }
+      setCurrentUser(userData)
+      setIsLoading(false)
+    }
+
+    checkAuth()
+  }, [router])
 
   const handleChatComplete = (goals: string[]) => {
     setLearningGoals(goals)
@@ -26,6 +47,21 @@ export default function HomePage() {
   const handleLearningPlanSelected = (plan: LearningPlanData) => {
     setSelectedPlan(plan)
     console.log('Learning plan selected:', plan)
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-white/70">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!currentUser) {
+    return null // Will be redirected
   }
 
   return (
@@ -46,6 +82,11 @@ export default function HomePage() {
               : "Let's start by understanding your learning goals"
             }
           </p>
+          {currentUser && (
+            <div className="mt-2 text-sm text-white/70">
+              Welcome back, {currentUser.name}!
+            </div>
+          )}
           {createdPlan && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}

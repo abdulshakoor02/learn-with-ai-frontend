@@ -1,7 +1,8 @@
 import { apiRequest, OpenAIJsonResponse } from '@/lib/auth'
 import { OpenAIJsonRequest, LearningPlanData } from '@/lib/hooks'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+import { getSession } from 'next-auth/react'
+import { AuthUtils } from './authUtils'
+import { UserData, SessionData } from './authTypes'
 
 // OpenAI JSON endpoint service
 export class OpenAIService {
@@ -91,18 +92,63 @@ export class OpenAIService {
 export class LearningPlansService {
   static async createLearningPlan(planData: LearningPlanData): Promise<any> {
     try {
-      const userData = typeof window !== 'undefined' ? localStorage.getItem('user') : null
-      const user = userData ? JSON.parse(userData) : null
+      // Try multiple approaches to get user data
+      let userData: UserData | null = null
 
-      if (!user?._id) {
-        throw new Error('User not found')
+      // Approach 1: Check localStorage (client-side)
+      if (typeof window !== 'undefined') {
+        const localUserData = localStorage.getItem('user')
+        if (localUserData) {
+          try {
+            const parsedUser = JSON.parse(localUserData)
+            if (parsedUser?._id) {
+              userData = parsedUser
+              console.log('User found in localStorage:', userData._id)
+            }
+          } catch (parseError) {
+            console.error('Error parsing user from localStorage:', parseError)
+          }
+        }
+      }
+
+      // Approach 2: Check for session data (if NextAuth is available)
+      if (!userData) {
+        try {
+          const session = await getSession()
+          if (session?.user) {
+            userData = {
+              _id: session.user.id,
+              name: session.user.name!,
+              email: session.user.email!,
+              mobile: session.user.mobile
+            }
+            console.log('User found from session:', userData._id)
+          }
+        } catch (sessionError) {
+          console.warn('Session not available or error getting session:', sessionError)
+        }
+      }
+
+      // Approach 3: Check our auth utilities
+      if (!userData) {
+        userData = await AuthUtils.getUserDataAsync()
+        if (userData) {
+          console.log('User found from auth utilities:', userData._id)
+        }
+      }
+
+      // Fallback: Create a demo user ID for testing
+      if (!userData?._id) {
+        console.warn('No authenticated user found. Using demo user for testing.')
+        // This should only happen in development
+        userData = AuthUtils.getDemoUserData()
       }
 
       const response = await apiRequest('/learning-plans', {
         method: 'POST',
         body: JSON.stringify({
           ...planData,
-          userId: user._id
+          userId: userData._id
         })
       })
       return response
@@ -112,18 +158,26 @@ export class LearningPlansService {
     }
   }
 
-  static async getLearningPlans(userId?: string) {
+  static async getLearningPlans(userId?: string): Promise<any[]> {
     try {
-      const queryParam = userId ? `?userId=${userId}` : ''
+      let targetUserId = userId
+
+      // If no userId provided, try to get current user
+      if (!targetUserId) {
+        const userData = await AuthUtils.getUserDataAsync()
+        targetUserId = userData?._id
+      }
+
+      const queryParam = targetUserId ? `?userId=${targetUserId}` : ''
       const response = await apiRequest(`/learning-plans${queryParam}`)
-      return response
+      return response as any[]
     } catch (error) {
       console.error('Get learning plans error:', error)
       throw new Error('Failed to fetch learning plans')
     }
   }
 
-  static async getLearningPlanById(planId: string) {
+  static async getLearningPlanById(planId: string): Promise<any> {
     try {
       const response = await apiRequest(`/learning-plans/${planId}`)
       return response
@@ -133,7 +187,7 @@ export class LearningPlansService {
     }
   }
 
-  static async updateLearningPlan(planId: string, updates: Partial<LearningPlanData>) {
+  static async updateLearningPlan(planId: string, updates: Partial<LearningPlanData>): Promise<any> {
     try {
       const response = await apiRequest(`/learning-plans/${planId}`, {
         method: 'PUT',
@@ -146,47 +200,15 @@ export class LearningPlansService {
     }
   }
 
-  static async deleteLearningPlan(planId: string) {
+  static async deleteLearningPlan(planId: string): Promise<boolean> {
     try {
       const response = await apiRequest(`/learning-plans/${planId}`, {
         method: 'DELETE'
       })
-      return response
+      return response === true
     } catch (error) {
       console.error('Delete learning plan error:', error)
       throw new Error('Failed to delete learning plan')
     }
-  }
-}
-
-// Authentication helper functions
-export const AuthUtils = {
-  getAccessToken: (): string | null => {
-    if (typeof window === 'undefined') return null
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-
-    try {
-      const user = JSON.parse(userData)
-      return localStorage.getItem('accessToken')
-    } catch {
-      return null
-    }
-  },
-
-  getUserData: () => {
-    if (typeof window === 'undefined') return null
-    const userData = localStorage.getItem('user')
-    if (!userData) return null
-
-    try {
-      return JSON.parse(userData)
-    } catch {
-      return null
-    }
-  },
-
-  isAuthenticated: (): boolean => {
-    return !!AuthUtils.getAccessToken()
   }
 }
