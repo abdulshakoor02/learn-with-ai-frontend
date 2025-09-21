@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { signOut, useSession } from 'next-auth/react'
 import { HomeIcon, BookOpenIcon, UserCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
+import { clearAuthData } from '@/lib/localStorage'
 
 const navigationItems = [
   { name: 'Home', href: '/home', icon: HomeIcon },
@@ -21,6 +22,10 @@ export const LearningNav = () => {
   const handleLogout = async () => {
     setIsLoggingOut(true)
     try {
+      // Clear localStorage data first
+      clearAuthData()
+      
+      // Then sign out from NextAuth
       await signOut({ redirect: false })
       router.push('/')
     } catch (error) {

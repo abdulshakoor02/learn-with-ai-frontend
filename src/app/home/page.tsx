@@ -46,7 +46,7 @@ export default function HomePage() {
               transition={{ duration: 0.5 }}
               className="flex justify-center"
             >
-              <div className="w-full max-w-3xl">
+              <div className="w-full max-w-3xl space-y-6">
                 <div className="text-center mb-8">
                   <motion.div
                     initial={{ scale: 0 }}

@@ -67,8 +67,10 @@ export default function LoginPage() {
           : result.error)
       } else if (result?.ok) {
         console.log('Login successful, redirecting to /home')
-        // Successful login - redirect to home
-        router.push('/home')
+        // Wait a moment for the session to be established before redirecting
+        setTimeout(() => {
+          router.push('/home')
+        }, 500)
       } else {
         setError('An unexpected error occurred')
       }
