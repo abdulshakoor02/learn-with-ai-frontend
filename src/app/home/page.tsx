@@ -3,19 +3,19 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { EnhancedChatInterface } from '@/components/chat/EnhancedChatInterface'
-import { LearningTimeline } from '@/components/timeline/LearningTimeline'
 import { SparklesIcon, StarIcon } from '@heroicons/react/24/outline'
 import { LearningPlanData } from '@/lib/hooks'
 import { AuthUtils } from '@/services/authUtils'
 import { useRouter } from 'next/navigation'
+import { LearningPlansService } from '@/services/api'
 
 export default function HomePage() {
-  const [showTimeline, setShowTimeline] = useState(false)
   const [learningGoals, setLearningGoals] = useState<string[]>([])
   const [selectedPlan, setSelectedPlan] = useState<LearningPlanData | null>(null)
   const [createdPlan, setCreatedPlan] = useState<LearningPlanData | null>(null)
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isCreating, setIsCreating] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -36,12 +36,30 @@ export default function HomePage() {
 
   const handleChatComplete = (goals: string[]) => {
     setLearningGoals(goals)
-    setShowTimeline(true)
   }
 
-  const handleLearningPlanGenerated = (plan: LearningPlanData) => {
+  const handleLearningPlanGenerated = async (plan: LearningPlanData) => {
     setCreatedPlan(plan)
-    console.log('Learning plan generated:', plan)
+    setIsCreating(true)
+    
+    try {
+      // Save the learning plan to the backend
+      const savedPlan = await LearningPlansService.createLearningPlan(plan)
+      console.log('Learning plan created successfully:', savedPlan)
+      
+      // Show success message briefly then redirect to courses
+      setTimeout(() => {
+        router.push('/home/courses')
+      }, 2000)
+      
+    } catch (error) {
+      console.error('Failed to create learning plan:', error)
+      setIsCreating(false)
+      // Still redirect to courses even if save failed - user can see the plan there
+      setTimeout(() => {
+        router.push('/home/courses')
+      }, 2000)
+    }
   }
 
   const handleLearningPlanSelected = (plan: LearningPlanData) => {
@@ -77,10 +95,7 @@ export default function HomePage() {
             Welcome to Your Learning Journey
           </h1>
           <p className="text-xl text-white/80">
-            {showTimeline
-              ? "Here's your personalized learning timeline"
-              : "Let's start by understanding your learning goals"
-            }
+            Let's start by understanding your learning goals
           </p>
           {currentUser && (
             <div className="mt-2 text-sm text-white/70">
@@ -95,65 +110,73 @@ export default function HomePage() {
             >
               <div className="flex items-center space-x-2 text-sm text-white/70">
                 <StarIcon className="w-4 h-4 text-yellow-400" />
-                <span>Plan Generated: <strong className="text-white">{createdPlan.title}</strong></span>
+                <span>Plan Generated: <strong className="text-white">{createdPlan.title || 'Learning Plan'}</strong></span>
+              </div>
+            </motion.div>
+          )}
+          {isCreating && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mt-4 p-4 glass-accent rounded-xl border border-green-500/30"
+            >
+              <div className="flex items-center space-x-2 text-green-400 text-sm">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-400"></div>
+                <span>Saving your learning plan and redirecting to courses...</span>
               </div>
             </motion.div>
           )}
         </motion.div>
 
-        {/* Content Area */}
-        <AnimatePresence mode="wait">
-          {!showTimeline ? (
-            <motion.div
-              key="chat"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.5 }}
-              className="flex justify-center"
+        {/* Content Area - Always show chat interface */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex justify-center"
+        >
+          <div className="w-full max-w-3xl space-y-6">
+            <div className="text-center mb-8">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mb-4"
+              >
+                <SparklesIcon className="w-8 h-8 text-white" />
+              </motion.div>
+              <h2 className="text-2xl font-semibold text-white mb-2">
+                What would you like to learn today?
+              </h2>
+              <p className="text-white/70">
+                Our AI assistant will create a personalized learning path just for you.
+              </p>
+            </div>
+            <EnhancedChatInterface
+              onComplete={handleChatComplete}
+              onLearningPlanGenerated={handleLearningPlanGenerated}
+              onLearningPlanSelected={handleLearningPlanSelected}
+            />
+          </div>
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="mt-12 text-center"
+        >
+          <div className="flex flex-wrap justify-center gap-4">
+            <button
+              onClick={() => router.push('/home/courses')}
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 flex items-center space-x-2"
             >
-              <div className="w-full max-w-3xl space-y-6">
-                <div className="text-center mb-8">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                    className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full mb-4"
-                  >
-                    <SparklesIcon className="w-8 h-8 text-white" />
-                  </motion.div>
-                  <h2 className="text-2xl font-semibold text-white mb-2">
-                    What would you like to learn today?
-                  </h2>
-                  <p className="text-white/70">
-                    Our AI assistant will create a personalized learning path just for you.
-                  </p>
-                </div>
-                <EnhancedChatInterface
-                  onComplete={handleChatComplete}
-                  onLearningPlanGenerated={handleLearningPlanGenerated}
-                  onLearningPlanSelected={handleLearningPlanSelected}
-                />
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="timeline"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-            >
-              <LearningTimeline
-                goals={learningGoals}
-                selectedLearningPlan={selectedPlan}
-                onPlanUpdate={(plan) => {
-                  setSelectedPlan(plan)
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <StarIcon className="w-5 h-5" />
+              <span>View My Learning Plans</span>
+            </button>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

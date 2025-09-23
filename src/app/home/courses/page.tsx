@@ -67,14 +67,14 @@ export default function CoursesPage() {
       // Fetch learning plans for this user
       const learningPlans = await LearningPlansService.getLearningPlans(user._id)
 
-          // Transform learning plans to course format
+      // Transform learning plans to course format
       const transformedCourses = learningPlans.map((plan: any) => ({
         id: plan._id || plan.id,
         title: plan.title,
-        description: `A comprehensive ${plan.duration} learning plan with ${plan.phases?.length || 0} phases covering ${plan.prerequisites?.length || 0} prerequisites. Focus areas include: ${plan.phases?.map((p: any) => p.focus).join(', ') || 'TBD'}.`,
+        description: `A comprehensive ${plan.duration} week learning plan with ${plan.phases?.length || 0} phases covering ${plan.prerequisites?.length || 0} prerequisites. Focus areas include: ${plan.phases?.map((p: any) => p.focus).join(', ') || 'TBD'}.`,
         category: 'Learning Path',
         difficulty: 'intermediate', // Default difficulty
-        duration: plan.duration,
+        duration: `${plan.duration} weeks`,
         rating: 4.8, // Default rating
         enrolled: 1, // Personal plan
         progress: Math.floor(Math.random() * 30), // Mock progress
@@ -181,6 +181,11 @@ export default function CoursesPage() {
   useEffect(() => {
     fetchCourses()
   }, [])
+
+  // Handle course click - navigate to course detail page
+  const handleCourseClick = (courseId: string) => {
+    router.push(`/home/courses/${courseId}`)
+  }
 
   // Get categories from real data
   const categories = ['all', 'Learning Path']
@@ -368,7 +373,7 @@ export default function CoursesPage() {
               transition={{ delay: index * 0.1 }}
               className="h-full"
             >
-              <LearningPlanCard plan={course} />
+              <LearningPlanCard plan={course} onClick={() => handleCourseClick(course.id)} />
             </motion.div>
           ))}
         </motion.div>

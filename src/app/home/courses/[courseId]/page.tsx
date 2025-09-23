@@ -1,35 +1,22 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { CourseTimeline } from '@/components/courses/CourseTimeline'
 import { CourseHeader } from '@/components/courses/CourseHeader'
 import { CourseStats } from '@/components/courses/CourseStats'
 import { CourseReviews } from '@/components/courses/CourseReviews'
-import { PlayCircleIcon, ClockIcon, StarIcon, UsersIcon } from '@heroicons/react/24/outline'
-
-interface Module {
-  id: string
-  title: string
-  duration: string
-  type: 'video' | 'reading' | 'quiz' | 'assignment'
-  completed: boolean
-  locked: boolean
-}
-
-interface Section {
-  id: string
-  title: string
-  modules: Module[]
-}
+import { LearningTimeline } from '@/components/timeline/LearningTimeline'
+import { PlayCircleIcon, ClockIcon, StarIcon, UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { LearningPlansService } from '@/services/api'
+import { AuthUtils } from '@/services/authUtils'
 
 interface CourseData {
   id: string
   title: string
   description: string
   longDescription: string
-  image: string
   category: string
   difficulty: 'beginner' | 'intermediate' | 'advanced'
   duration: string
@@ -40,21 +27,27 @@ interface CourseData {
   tags: string[]
   instructor: {
     name: string
-    avatar: string
     bio: string
     title: string
   }
-  sections: Section[]
+  phases: Array<{
+    focus: string
+    duration: string
+    topics: string[]
+  }>
   whatYouWillLearn: string[]
   prerequisites: string[]
+  userId?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
+// Mock data for fallback
 const mockCourseData: CourseData = {
   id: '1',
   title: 'Introduction to Machine Learning',
   description: 'Master the fundamentals of machine learning with hands-on projects and real-world applications.',
   longDescription: 'This comprehensive course will take you from zero to hero in machine learning. You\'ll learn the fundamental concepts, algorithms, and practical applications of ML. Through hands-on projects and real-world datasets, you\'ll gain the skills needed to build and deploy machine learning models.',
-  image: '/courses/ml-intro.jpg',
   category: 'Data Science',
   difficulty: 'beginner',
   duration: '8 weeks',
@@ -64,147 +57,30 @@ const mockCourseData: CourseData = {
   progress: 35,
   tags: ['Python', 'Scikit-learn', 'Data Analysis', 'Neural Networks', 'Deep Learning'],
   instructor: {
-    name: 'Dr. Sarah Chen',
-    avatar: '/instructors/sarah-chen.jpg',
-    bio: 'Senior Data Scientist with 10+ years of experience in machine learning and AI. PhD in Computer Science from MIT.',
-    title: 'Senior Data Scientist'
+    name: 'AI Learning Assistant',
+    bio: 'Your personalized AI learning companion that creates custom learning paths based on your goals and preferences.',
+    title: 'AI Learning Assistant'
   },
-  sections: [
+  phases: [
     {
-      id: '1',
-      title: 'Introduction and Setup',
-      modules: [
-        {
-          id: '1-1',
-          title: 'Course Overview and Prerequisites',
-          duration: '15 min',
-          type: 'video',
-          completed: true,
-          locked: false
-        },
-        {
-          id: '1-2',
-          title: 'Setting Up Your Development Environment',
-          duration: '30 min',
-          type: 'video',
-          completed: true,
-          locked: false
-        },
-        {
-          id: '1-3',
-          title: 'Introduction to Python for ML',
-          duration: '45 min',
-          type: 'reading',
-          completed: false,
-          locked: false
-        }
-      ]
+      focus: 'Mathematical Foundations',
+      duration: '2 weeks',
+      topics: ['Linear Algebra', 'Statistics', 'Probability']
     },
     {
-      id: '2',
-      title: 'Machine Learning Fundamentals',
-      modules: [
-        {
-          id: '2-1',
-          title: 'What is Machine Learning?',
-          duration: '25 min',
-          type: 'video',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '2-2',
-          title: 'Types of Machine Learning',
-          duration: '35 min',
-          type: 'video',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '2-3',
-          title: 'Supervised vs Unsupervised Learning',
-          duration: '40 min',
-          type: 'reading',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '2-4',
-          title: 'Quiz: ML Fundamentals',
-          duration: '20 min',
-          type: 'quiz',
-          completed: false,
-          locked: false
-        }
-      ]
+      focus: 'Supervised Learning',
+      duration: '2 weeks',
+      topics: ['Linear Regression', 'Classification', 'Decision Trees']
     },
     {
-      id: '3',
-      title: 'Data Preprocessing',
-      modules: [
-        {
-          id: '3-1',
-          title: 'Data Cleaning Techniques',
-          duration: '50 min',
-          type: 'video',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '3-2',
-          title: 'Feature Engineering',
-          duration: '45 min',
-          type: 'video',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '3-3',
-          title: 'Data Visualization',
-          duration: '35 min',
-          type: 'reading',
-          completed: false,
-          locked: false
-        },
-        {
-          id: '3-4',
-          title: 'Assignment: Data Preprocessing',
-          duration: '2 hours',
-          type: 'assignment',
-          completed: false,
-          locked: false
-        }
-      ]
+      focus: 'Unsupervised Learning',
+      duration: '2 weeks',
+      topics: ['Clustering', 'Dimensionality Reduction', 'PCA']
     },
     {
-      id: '4',
-      title: 'Supervised Learning',
-      modules: [
-        {
-          id: '4-1',
-          title: 'Linear Regression',
-          duration: '60 min',
-          type: 'video',
-          completed: false,
-          locked: true
-        },
-        {
-          id: '4-2',
-          title: 'Logistic Regression',
-          duration: '55 min',
-          type: 'video',
-          completed: false,
-          locked: true
-        },
-        {
-          id: '4-3',
-          title: 'Decision Trees',
-          duration: '50 min',
-          type: 'video',
-          completed: false,
-          locked: true
-        }
-      ]
+      focus: 'Deep Learning Basics',
+      duration: '2 weeks',
+      topics: ['Neural Networks', 'Backpropagation', 'TensorFlow']
     }
   ],
   whatYouWillLearn: [
@@ -225,15 +101,134 @@ const mockCourseData: CourseData = {
 
 export default function CourseDetailPage() {
   const params = useParams()
-  const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'reviews'>('overview')
+  const router = useRouter()
+  const courseId = params?.courseId as string
   
-  const course = mockCourseData // In real app, fetch based on params.courseId
+  const [course, setCourse] = useState<CourseData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'overview' | 'curriculum' | 'timeline'>('overview')
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // Fetch course data
+  const fetchCourse = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      // Get current user
+      const user = await AuthUtils.getUserDataAsync()
+      if (!user) {
+        router.push('/home/login')
+        return
+      }
+      setCurrentUser(user)
+
+      // Fetch the specific learning plan
+      const learningPlan = await LearningPlansService.getLearningPlanById(courseId)
+
+      if (!learningPlan) {
+        setError('Learning plan not found')
+        setCourse(mockCourseData) // Fallback to mock data
+        return
+      }
+
+      // Transform learning plan to course format
+      const transformedCourse: CourseData = {
+        id: learningPlan._id || learningPlan.id,
+        title: learningPlan.title,
+        description: `A comprehensive ${learningPlan.duration} week learning plan with ${learningPlan.phases?.length || 0} phases covering ${learningPlan.prerequisites?.length || 0} prerequisites.`,
+        longDescription: `This personalized learning plan was created by our AI assistant based on your goals. The plan covers ${learningPlan.phases?.length || 0} focused phases over ${learningPlan.duration} weeks, helping you master the skills you need.`,
+        category: 'Learning Path',
+        difficulty: 'intermediate', // Default difficulty
+        duration: `${learningPlan.duration} weeks`,
+        rating: 4.8, // Default rating
+        reviews: 1, // Personal plan
+        enrolled: 1, // Personal plan
+        progress: Math.floor(Math.random() * 30), // Mock progress for now
+        tags: learningPlan.prerequisites || [],
+        instructor: {
+          name: 'AI Learning Assistant',
+          bio: 'Your personalized AI learning companion that creates custom learning paths based on your goals and preferences.',
+          title: 'AI Learning Assistant'
+        },
+        phases: learningPlan.phases,
+        prerequisites: learningPlan.prerequisites,
+        whatYouWillLearn: learningPlan.phases?.flatMap((phase: any) => 
+          phase.topics?.map((topic: any) => topic.title || topic) || []
+        ) || [],
+        userId: learningPlan.userId || user._id,
+        createdAt: learningPlan.createdAt,
+        updatedAt: learningPlan.updatedAt
+      }
+
+      setCourse(transformedCourse)
+
+    } catch (err) {
+      console.error('Error fetching course:', err)
+      setError('Failed to load learning plan. Showing fallback data.')
+      setCourse(mockCourseData) // Fallback to mock data
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (courseId) {
+      fetchCourse()
+    }
+  }, [courseId])
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: StarIcon },
     { id: 'curriculum', label: 'Curriculum', icon: ClockIcon },
-    { id: 'reviews', label: 'Reviews', icon: UsersIcon },
+    { id: 'timeline', label: 'Timeline', icon: PlayCircleIcon },
   ]
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+          <p className="text-white/70">Loading learning plan...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error && !course) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold gradient-text mb-4">Error Loading Course</h1>
+          <p className="text-xl text-red-400 mb-8">{error}</p>
+          <button
+            onClick={() => router.push('/home/courses')}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+          >
+            Back to Courses
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!course) {
+    return (
+      <div className="min-h-screen p-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl font-bold gradient-text mb-4">Course Not Found</h1>
+          <p className="text-xl text-white/70 mb-8">The learning plan you're looking for doesn't exist.</p>
+          <button
+            onClick={() => router.push('/home/courses')}
+            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+          >
+            Back to Courses
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-8">
@@ -305,16 +300,39 @@ export default function CourseDetailPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <CourseTimeline sections={course.sections} />
+              <CourseTimeline sections={course.phases.map((phase, index) => ({
+                id: `phase-${index}`,
+                title: phase.focus,
+                modules: phase.topics?.map((topic: any, topicIndex: number) => ({
+                  id: `phase-${index}-topic-${topicIndex}`,
+                  title: topic.title || topic,
+                  duration: '2-4 hours', // Mock duration
+                  type: 'reading' as const,
+                  completed: topic.status || false,
+                  locked: index > 0 // Lock future phases
+                })) || []
+              }))} />
             </motion.div>
           )}
 
-          {activeTab === 'reviews' && (
+          {activeTab === 'timeline' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <CourseReviews courseId={course.id} />
+              <LearningTimeline
+                goals={course.prerequisites}
+                selectedLearningPlan={{
+                  title: course.title,
+                  duration: course.duration,
+                  prerequisites: course.prerequisites,
+                  phases: course.phases?.map((phase: any) => ({
+                    focus: phase.focus,
+                    duration: phase.duration,
+                    topics: phase.topics?.map((topic: any) => topic.title || topic) || []
+                  })) || []
+                }}
+              />
             </motion.div>
           )}
         </div>

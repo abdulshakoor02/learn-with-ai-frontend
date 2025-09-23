@@ -14,9 +14,10 @@ interface LearningPlanCardProps {
     enrolled?: number
     rating?: number
   }
+  onClick?: () => void
 }
 
-export const LearningPlanCard = ({ plan }: LearningPlanCardProps) => {
+export const LearningPlanCard = ({ plan, onClick }: LearningPlanCardProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const [showPhases, setShowPhases] = useState(false)
 
@@ -62,7 +63,8 @@ export const LearningPlanCard = ({ plan }: LearningPlanCardProps) => {
       whileTap={{ scale: 0.98 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className="h-full"
+      onClick={onClick}
+      className="h-full cursor-pointer"
     >
       <div className="h-full glass-secondary rounded-2xl overflow-hidden group hover:glass-accent transition-all duration-300">
           {/* Header Section - No Course Image */}
