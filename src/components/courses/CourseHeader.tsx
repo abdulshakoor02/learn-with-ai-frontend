@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { StarIcon, ClockIcon, UsersIcon, BookOpenIcon } from '@heroicons/react/24/outline'
+import { StarIcon, ClockIcon, UsersIcon, BookOpenIcon, AcademicCapIcon, CodeBracketIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 interface Instructor {
   name: string
@@ -15,7 +15,7 @@ interface CourseHeaderProps {
     title: string
     description: string
     longDescription: string
-    image: string
+    image?: string
     category: string
     difficulty: string
     duration: string
@@ -60,6 +60,38 @@ export const CourseHeader = ({ course }: CourseHeaderProps) => {
     }
   }
 
+  // Generate generic gradient based on course title for consistent visual identity
+  const getGenericImage = () => {
+    const gradients = [
+      'bg-gradient-to-br from-purple-600 to-blue-600',
+      'bg-gradient-to-br from-pink-600 to-purple-600',
+      'bg-gradient-to-br from-blue-600 to-cyan-600',
+      'bg-gradient-to-br from-green-600 to-blue-600',
+      'bg-gradient-to-br from-orange-600 to-red-600',
+      'bg-gradient-to-br from-indigo-600 to-purple-600',
+    ]
+    
+    // Simple hash function to consistently select a gradient based on course title
+    const hash = course.title.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    return gradients[hash % gradients.length]
+  }
+
+  // Generic icons for different course categories
+  const getCategoryIcon = () => {
+    const icons = {
+      'Learning Path': AcademicCapIcon,
+      'Data Science': ChartBarIcon,
+      'Programming': CodeBracketIcon,
+      'Machine Learning': ChartBarIcon,
+      'Web Development': CodeBracketIcon,
+      'default': AcademicCapIcon
+    }
+    
+    return icons[course.category as keyof typeof icons] || icons.default
+  }
+
+  const IconComponent = getCategoryIcon()
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -67,13 +99,14 @@ export const CourseHeader = ({ course }: CourseHeaderProps) => {
       className="glass-primary rounded-2xl overflow-hidden"
     >
       <div className="flex flex-col lg:flex-row">
-        {/* Course Image */}
-        <div className="lg:w-1/3 h-64 lg:h-auto relative overflow-hidden">
-          <img
-            src={course.image}
-            alt={course.title}
-            className="w-full h-full object-cover"
-          />
+        {/* Course Image/Placeholder */}
+        <div className={`lg:w-1/3 h-64 lg:h-auto relative overflow-hidden ${getGenericImage()}`}>
+          {/* Generic Icon in Center */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <IconComponent className="w-24 h-24 text-white/40" />
+          </div>
+          
+          {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           
           {/* Progress Overlay */}
@@ -117,11 +150,11 @@ export const CourseHeader = ({ course }: CourseHeaderProps) => {
 
           {/* Instructor */}
           <div className="flex items-center space-x-4 p-4 bg-white/5 rounded-xl border border-white/10">
-            <img
-              src={course.instructor.avatar}
-              alt={course.instructor.name}
-              className="w-12 h-12 rounded-full object-cover"
-            />
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+              <span className="text-white font-bold text-lg">
+                {course.instructor.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              </span>
+            </div>
             <div>
               <h3 className="text-white font-semibold">{course.instructor.name}</h3>
               <p className="text-white/70 text-sm">{course.instructor.title}</p>
@@ -157,7 +190,7 @@ export const CourseHeader = ({ course }: CourseHeaderProps) => {
             <div className="glass-neutral p-4 rounded-xl text-center">
               <BookOpenIcon className="w-8 h-8 text-white/60 mx-auto mb-2" />
               <div className="text-2xl font-bold text-white">
-                {course.sections?.reduce((total, section) => total + section.modules.length, 0) || 0}
+                {course.sections?.reduce((total, section) => total + section.modules.length, 0) || course.phases?.reduce((total, phase) => total + (phase.topics?.length || 0), 0) || 0}
               </div>
               <div className="text-white/70 text-sm">Modules</div>
             </div>

@@ -159,7 +159,9 @@ export default function CourseDetailPage() {
         ) || [],
         userId: learningPlan.userId || user._id,
         createdAt: learningPlan.createdAt,
-        updatedAt: learningPlan.updatedAt
+        updatedAt: learningPlan.updatedAt,
+        // Add generic image for dynamically generated courses
+        image: '/api/placeholder/600/400'
       }
 
       setCourse(transformedCourse)
