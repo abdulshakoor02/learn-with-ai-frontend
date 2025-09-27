@@ -13,6 +13,7 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline'
 import { LearningPlansService } from '@/services/api'
+import '@/styles/ios-modal-fixes.css'
 
 interface Module {
   id: string
@@ -54,6 +55,16 @@ export const LearningModal = ({
   const [isCompleting, setIsCompleting] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [phaseCompleted, setPhaseCompleted] = useState(false)
+  const [isIOS, setIsIOS] = useState(false)
+
+  // Detect iOS device
+  useEffect(() => {
+    const checkIOS = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+      return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+    }
+    setIsIOS(checkIOS())
+  }, [])
 
   // Reset completion state when modal opens
   useEffect(() => {
@@ -283,7 +294,13 @@ export const LearningModal = ({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-mobile"
+          className="fixed inset-0 bg-black/60 modal-backdrop-mobile"
+          style={{
+            backdropFilter: 'blur(4px)',
+            WebkitBackdropFilter: 'blur(4px)', // iOS Safari specific
+            transform: 'translateZ(0)', // Force hardware layer
+            WebkitTransform: 'translateZ(0)'
+          }}
           onClick={(e) => {
             // Only close if clicking directly on backdrop, not on modal content
             if (e.target === e.currentTarget) {
@@ -299,11 +316,14 @@ export const LearningModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl max-h-[80vh] sm:max-h-[90vh] md:max-h-[85vh] glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden modal-mobile modal-content-mobile my-4 sm:my-0"
+          className={`relative w-full max-w-4xl h-[70vh] max-h-[70vh] sm:max-h-[90vh] md:max-h-[85vh] glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden modal-mobile modal-content-mobile my-4 sm:my-0 ${isIOS ? 'ios-modal-fix' : ''}`}
           style={{
             transform: 'translateZ(0)', // Force hardware acceleration to prevent blur
             backfaceVisibility: 'hidden', // Fix for mobile rendering issues
-            WebkitBackfaceVisibility: 'hidden'
+            WebkitBackfaceVisibility: 'hidden',
+            WebkitTransform: 'translateZ(0)', // Webkit-specific hardware acceleration
+            isolation: 'isolate', // Create new stacking context for iOS
+            willChange: 'transform', // Hint for GPU acceleration
           }}
         >
           {/* Header */}
@@ -336,7 +356,7 @@ export const LearningModal = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target bg-black/20 backdrop-blur-sm mobile-close-fix"
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target mobile-close-fix"
               aria-label="Close modal"
               style={{
                 minWidth: '44px',
@@ -344,10 +364,26 @@ export const LearningModal = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 10
+                zIndex: 999,
+                position: 'relative',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
+                isolation: 'isolate',
+                willChange: 'transform'
               }}
             >
-              <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white hover:text-white" />
+              <XMarkIcon 
+                className="w-5 h-5 sm:w-6 sm:h-6 text-white hover:text-white" 
+                style={{
+                  filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5))',
+                  transform: 'translateZ(0)',
+                  WebkitTransform: 'translateZ(0)'
+                }}
+              />
             </button>
           </div>
 
@@ -428,12 +464,19 @@ export const LearningModal = ({
           {/* Footer */}
           {content && !isLoading && !error && (
             <div 
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 bg-black/20 backdrop-blur-sm flex-shrink-0 mobile-button-fix"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0 mobile-button-fix"
               style={{
                 position: 'sticky',
                 bottom: 0,
-                zIndex: 10,
-                minHeight: '60px'
+                zIndex: 999,
+                minHeight: '60px',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backdropFilter: 'blur(12px)',
+                WebkitBackdropFilter: 'blur(12px)',
+                transform: 'translateZ(0)',
+                WebkitTransform: 'translateZ(0)',
+                isolation: 'isolate',
+                willChange: 'transform'
               }}
             >
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/90">
@@ -462,7 +505,13 @@ export const LearningModal = ({
                   }`}
                   style={{
                     minHeight: '48px',
-                    zIndex: 10
+                    zIndex: 999,
+                    position: 'relative',
+                    transform: 'translateZ(0)',
+                    WebkitTransform: 'translateZ(0)',
+                    isolation: 'isolate',
+                    willChange: 'transform',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)'
                   }}
                 >
                   {isCompleting ? (
@@ -485,7 +534,13 @@ export const LearningModal = ({
                   className="touch-target px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
                   style={{
                     minHeight: '48px',
-                    zIndex: 10
+                    zIndex: 999,
+                    position: 'relative',
+                    transform: 'translateZ(0)',
+                    WebkitTransform: 'translateZ(0)',
+                    isolation: 'isolate',
+                    willChange: 'transform',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)'
                   }}
                 >
                   Continue Learning

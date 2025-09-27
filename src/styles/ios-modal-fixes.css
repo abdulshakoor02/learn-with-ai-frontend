@@ -1,0 +1,142 @@
+/* iOS-specific modal rendering fixes */
+
+/* Force hardware acceleration and fix rendering issues on iOS */
+.modal-mobile {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  isolation: isolate;
+  will-change: transform;
+}
+
+/* Fix button rendering on iOS Safari */
+.mobile-close-fix,
+.mobile-button-fix button {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  isolation: isolate;
+  will-change: transform;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fix backdrop blur on iOS */
+.modal-backdrop-mobile {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+/* Ensure proper stacking and rendering */
+.modal-content-mobile {
+  contain: layout style paint;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  isolation: isolate;
+}
+
+/* Fix scrolling issues on iOS */
+.modal-scroll-fix {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Prevent zoom on iOS double-tap for buttons */
+.touch-target {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Additional iOS webkit fixes */
+@supports (-webkit-touch-callout: none) {
+  /* iOS-only styles */
+  .modal-mobile {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+  
+  .mobile-close-fix,
+  .mobile-button-fix button {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  /* Force GPU layer for buttons */
+  .mobile-button-fix {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    contain: layout style paint;
+  }
+}
+
+/* Fix for WebKit blur issues */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .mobile-close-fix,
+  .mobile-button-fix button {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+  }
+}
+
+/* iOS-specific modal fixes */
+.ios-modal-fix {
+  /* Force compositing layer */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  
+  /* Fix rendering issues */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  
+  /* Create isolation context */
+  isolation: isolate;
+  
+  /* Prevent flickering */
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+  
+  /* Force hardware acceleration */
+  will-change: transform;
+  
+  /* Fix Safari rendering bug */
+  contain: layout style paint;
+}
+
+/* iOS-specific button fixes */
+.ios-modal-fix .mobile-close-fix,
+.ios-modal-fix .mobile-button-fix button {
+  /* Force GPU layer */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  
+  /* Fix button appearance */
+  -webkit-appearance: none;
+  appearance: none;
+  
+  /* Prevent blur */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  
+  /* Create stacking context */
+  isolation: isolate;
+  
+  /* Better text rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Force repaint */
+  will-change: transform;
+}
