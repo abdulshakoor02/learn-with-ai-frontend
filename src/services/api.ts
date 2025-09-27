@@ -57,11 +57,11 @@ export class OpenAIService {
   }
 
   private static createLearningPrompt(moduleTitle: string, moduleType: string, sectionTitle?: string): string {
-    const baseContext = sectionTitle ? `This is part of the "${sectionTitle}" section.` : ''
+    // const baseContext = sectionTitle ? `This is part of the "${sectionTitle}" section.` : ''
     
     switch (moduleType) {
       case 'video':
-        return `Create a comprehensive video lesson script for "${moduleTitle}". ${baseContext}
+        return `Create a comprehensive video lesson script for "${moduleTitle}"
 
 Please structure the content as follows:
 1. **Introduction** - Brief overview and learning objectives
@@ -74,7 +74,7 @@ Please structure the content as follows:
 Make it engaging, educational, and easy to follow. Include code examples if relevant to the topic.`
 
       case 'reading':
-        return `Create detailed reading material for "${moduleTitle}". ${baseContext}
+        return `Create detailed reading material for "${moduleTitle}"
 
 Please provide:
 1. **Overview** - Introduction to the topic
@@ -88,7 +88,7 @@ Please provide:
 Make it comprehensive yet accessible, with clear headings and well-structured content.`
 
       case 'quiz':
-        return `Create an interactive quiz for "${moduleTitle}". ${baseContext}
+        return `Create an interactive quiz for "${moduleTitle}"
 
 Please provide:
 1. **Quiz Instructions** - How to approach the quiz
@@ -101,7 +101,7 @@ Please provide:
 Make the questions progressively challenging and educational.`
 
       case 'assignment':
-        return `Create a practical assignment for "${moduleTitle}". ${baseContext}
+        return `Create a practical assignment for "${moduleTitle}"
 
 Please provide:
 1. **Assignment Brief** - Clear description and objectives
@@ -115,7 +115,7 @@ Please provide:
 Make it practical, achievable, and directly related to the learning objectives.`
 
       default:
-        return `Create comprehensive learning material for "${moduleTitle}". ${baseContext}
+        return `Create comprehensive learning material for "${moduleTitle}"
 
 Please provide well-structured educational content that includes:
 1. Clear explanations of key concepts
