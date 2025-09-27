@@ -320,4 +320,39 @@ export class LearningPlansService {
       throw new Error('Failed to delete learning plan')
     }
   }
+
+  static async updateTopicStatus(learningPlanId: string, topicTitle: string, status: boolean): Promise<any> {
+    try {
+      console.log(learningPlanId,topicTitle,status)
+      const response = await apiRequest('/learning-plans/topics/status', {
+        method: 'POST',
+        body: JSON.stringify({
+          learningPlanId,
+          topicTitle,
+          status
+        })
+      })
+      return response
+    } catch (error) {
+      console.error('Update topic status error:', error)
+      throw new Error('Failed to update topic status')
+    }
+  }
+
+  static async updatePhaseStatus(learningPlanId: string, phaseName: string, status: boolean): Promise<any> {
+    try {
+      const response = await apiRequest('/learning-plans/phases/status', {
+        method: 'POST',
+        body: JSON.stringify({
+          learningPlanId,
+          phaseName,
+          status
+        })
+      })
+      return response
+    } catch (error) {
+      console.error('Update phase status error:', error)
+      throw new Error('Failed to update phase status')
+    }
+  }
 }

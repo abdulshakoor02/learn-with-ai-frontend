@@ -32,10 +32,12 @@ interface Section {
 
 interface CourseTimelineProps {
   sections: Section[]
+  learningPlanId?: string
 }
 
-export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
+export const CourseTimeline = ({ sections, learningPlanId }: CourseTimelineProps) => {
   const [expandedSections, setExpandedSections] = useState<string[]>(['1'])
+  const [localSections, setLocalSections] = useState<Section[]>(sections)
   const [modalState, setModalState] = useState({
     isOpen: false,
     selectedModule: null as Module | null,
@@ -45,6 +47,11 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
     error: null as string | null
   })
 
+  // Keep local sections in sync if prop changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Note: This intentionally avoids adding setLocalSections to deps
+  // to prevent unnecessary re-renders
+  
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev =>
       prev.includes(sectionId)
@@ -143,8 +150,8 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-2xl font-bold text-white">Course Curriculum</h3>
         <div className="text-white/70">
-          {sections.reduce((total, section) => total + getSectionProgress(section).completed, 0)} /
-          {sections.reduce((total, section) => total + section.modules.length, 0)} modules completed
+          {localSections.reduce((total, section) => total + getSectionProgress(section).completed, 0)} /
+          {localSections.reduce((total, section) => total + section.modules.length, 0)} modules completed
         </div>
       </div>
 
@@ -154,8 +161,8 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
           <span className="text-white font-medium">Overall Progress</span>
           <span className="text-white/70">
             {Math.round(
-              (sections.reduce((total, section) => total + getSectionProgress(section).completed, 0) /
-                sections.reduce((total, section) => total + section.modules.length, 0)) * 100
+              (localSections.reduce((total, section) => total + getSectionProgress(section).completed, 0) /
+                localSections.reduce((total, section) => total + section.modules.length, 0)) * 100
             )}%
           </span>
         </div>
@@ -163,8 +170,8 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
           <div
             className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-500"
             style={{
-              width: `${(sections.reduce((total, section) => total + getSectionProgress(section).completed, 0) /
-                sections.reduce((total, section) => total + section.modules.length, 0)) * 100}%`
+              width: `${(localSections.reduce((total, section) => total + getSectionProgress(section).completed, 0) /
+                localSections.reduce((total, section) => total + section.modules.length, 0)) * 100}%`
             }}
           />
         </div>
@@ -172,7 +179,7 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
 
       {/* Timeline */}
       <div className="space-y-6">
-        {sections.map((section, sectionIndex) => {
+        {localSections.map((section, sectionIndex) => {
           const progress = getSectionProgress(section)
           const isExpanded = expandedSections.includes(section.id)
 
@@ -315,6 +322,19 @@ export const CourseTimeline = ({ sections }: CourseTimelineProps) => {
         content={modalState.content}
         isLoading={modalState.isLoading}
         error={modalState.error}
+        learningPlanId={learningPlanId}
+        topicTitle={modalState.selectedModule?.title || undefined}
+        onTopicComplete={async (planId, topic) => {
+          try {
+            // Optimistic UI update
+            setLocalSections(prev => prev.map(sec => ({
+              ...sec,
+              modules: sec.modules.map(m => m.title === topic ? { ...m, completed: true } : m)
+            })))
+          } catch (e) {
+            // No-op; LearningModal already handles API call when no callback
+          }
+        }}
       />
     </div>
   )

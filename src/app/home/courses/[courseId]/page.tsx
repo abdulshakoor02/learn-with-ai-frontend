@@ -302,18 +302,20 @@ export default function CourseDetailPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <CourseTimeline sections={course.phases.map((phase, index) => ({
-                id: `phase-${index}`,
-                title: phase.focus,
-                modules: phase.topics?.map((topic: any, topicIndex: number) => ({
-                  id: `phase-${index}-topic-${topicIndex}`,
-                  title: topic.title || topic,
-                  duration: '2-4 hours', // Mock duration
-                  type: 'reading' as const,
-                  completed: topic.status || false,
-                  locked: index > 0 // Lock future phases
-                })) || []
-              }))} />
+              <CourseTimeline 
+                learningPlanId={courseId}
+                sections={course.phases.map((phase, index) => ({
+                  id: `phase-${index}`,
+                  title: phase.focus,
+                  modules: phase.topics?.map((topic: any, topicIndex: number) => ({
+                    id: `phase-${index}-topic-${topicIndex}`,
+                    title: topic.title || topic,
+                    duration: '2-4 hours', // Mock duration
+                    type: 'reading' as const,
+                    completed: topic.status || false,
+                    locked: index > 0 // Lock future phases
+                  })) || []
+                }))} />
             </motion.div>
           )}
 

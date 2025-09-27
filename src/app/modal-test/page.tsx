@@ -104,6 +104,17 @@ Machine Learning is a powerful tool that requires understanding of both theory a
         setIsLoading(false)
         break
         
+      case 'api':
+        setIsLoading(false)
+        setContent(`# Test Topic for API Completion
+
+## This is a test topic to verify API calls work correctly.
+
+Click "Save & Continue" to test the topic completion API.
+
+Check the browser console for API logs.`)
+        break
+        
       default:
         setIsLoading(false)
         setContent('This is a test content to verify the modal layout.')
@@ -150,6 +161,13 @@ Machine Learning is a powerful tool that requires understanding of both theory a
           >
             Test Empty State
           </button>
+          
+          <button
+            onClick={() => handleTestModal('api')}
+            className="p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Test API Completion
+          </button>
         </div>
 
         <div className="mt-8 p-6 bg-white/10 rounded-xl border border-white/20">
@@ -170,6 +188,8 @@ Machine Learning is a powerful tool that requires understanding of both theory a
           content={content}
           isLoading={isLoading}
           error={error}
+          learningPlanId="test-learning-plan-id"
+          topicTitle="Introduction to Machine Learning Algorithms"
         />
       </div>
     </div>
