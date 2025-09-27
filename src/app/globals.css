@@ -48,6 +48,18 @@ body {
 .glass-primary {
   @apply bg-purple-500 bg-opacity-10 backdrop-blur-xl border border-white border-opacity-20 rounded-3xl;
   box-shadow: 0 8px 32px rgba(124, 58, 237, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  
+  /* Enhanced mobile visibility */
+  @media (max-width: 767px) {
+    background: rgba(124, 58, 237, 0.15) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  }
 }
 
 .glass-secondary {
@@ -382,5 +394,80 @@ body {
   @media (max-width: 767px) {
     position: fixed;
     pointer-events: none;
+  }
+}
+
+/* Fix mobile modal blur and rendering issues */
+.modal-mobile {
+  /* Prevent blur on mobile devices */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+  
+  /* Ensure proper z-index stacking */
+  z-index: 50;
+  
+  /* Better mobile rendering */
+  @media (max-width: 767px) {
+    /* Force hardware acceleration */
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    
+    /* Ensure crisp rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    
+    /* Prevent text selection issues */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: text;
+  }
+}
+
+/* Fix for mobile button visibility */
+.mobile-button-fix {
+  @media (max-width: 767px) {
+    position: sticky;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    z-index: 100;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3) !important;
+  }
+}
+
+/* Mobile close button fix */
+.mobile-close-fix {
+  @media (max-width: 767px) {
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    z-index: 100;
+  }
+}
+
+/* Mobile modal content safety */
+.modal-content-mobile {
+  @media (max-width: 767px) {
+    /* Ensure content doesn't get cut off */
+    padding-bottom: env(safe-area-inset-bottom);
+    max-height: calc(100vh - 120px);
+    
+    /* Fix for iOS viewport units */
+    max-height: calc(100dvh - 120px);
+  }
+}
+
+/* Mobile header safety */
+.modal-header-mobile {
+  @media (max-width: 767px) {
+    padding-top: max(1rem, env(safe-area-inset-top));
   }
 }

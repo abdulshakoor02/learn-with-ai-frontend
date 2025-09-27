@@ -314,7 +314,7 @@ export default function CourseDetailPage() {
                     duration: '2-4 hours', // Mock duration
                     type: 'reading' as const,
                     completed: topic.status || false,
-                    locked: index > 0 // Lock future phases
+                    locked: false // Allow free access to all phases
                   })) || []
                 }))} />
             </motion.div>
