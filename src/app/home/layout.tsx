@@ -26,13 +26,28 @@ function AuthenticatedHomeLayout({
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       <AuthSync />
-      <div className="flex h-screen">
-        {/* Left Navigation */}
+      
+      {/* Desktop Layout */}
+      <div className="hidden md:flex h-screen">
+        {/* Left Navigation - Desktop */}
         <LearningNav />
         
-        {/* Main Content Area */}
+        {/* Main Content Area - Desktop */}
         <main className="flex-1 overflow-y-auto">
           <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile Layout */}
+      <div className="md:hidden min-h-screen">
+        {/* Mobile Navigation */}
+        <LearningNav />
+        
+        {/* Main Content Area - Mobile */}
+        <main className="pt-20 min-h-screen">
+          <div className="p-4 sm:p-6">
             {children}
           </div>
         </main>

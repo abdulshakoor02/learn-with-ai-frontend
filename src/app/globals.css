@@ -248,3 +248,84 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Mobile Touch Target Utilities */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  @apply flex items-center justify-center;
+}
+
+.touch-target-large {
+  min-height: 56px;
+  min-width: 56px;
+  @apply flex items-center justify-center;
+}
+
+/* Mobile-friendly button spacing */
+.button-group-mobile {
+  @apply flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:space-x-3;
+}
+
+/* Responsive utilities */
+.responsive-padding {
+  @apply p-4 sm:p-6 md:p-8;
+}
+
+.responsive-margin {
+  @apply m-4 sm:m-6 md:m-8;
+}
+
+/* Mobile grid utilities */
+.mobile-grid-1 {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3;
+}
+
+.mobile-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2;
+}
+
+/* Text truncation utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Extra small breakpoint utility for very small screens */
+.xs\:inline {
+  @media (min-width: 380px) {
+    display: inline;
+  }
+}
+
+.xs\:hidden {
+  @media (min-width: 380px) {
+    display: none;
+  }
+}

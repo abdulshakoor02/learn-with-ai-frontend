@@ -189,10 +189,10 @@ export default function CourseDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen-mobile flex items-center justify-center responsive-padding">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-white/70">Loading learning plan...</p>
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-purple-500 mx-auto mb-3 sm:mb-4"></div>
+          <p className="text-white/70 text-sm sm:text-base">Loading learning plan...</p>
         </div>
       </div>
     )
@@ -200,13 +200,13 @@ export default function CourseDetailPage() {
 
   if (error && !course) {
     return (
-      <div className="min-h-screen p-6">
+      <div className="min-h-screen-mobile responsive-padding">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold gradient-text mb-4">Error Loading Course</h1>
-          <p className="text-xl text-red-400 mb-8">{error}</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">Error Loading Course</h1>
+          <p className="text-base sm:text-lg md:text-xl text-red-400 mb-6 sm:mb-8 px-4">{error}</p>
           <button
             onClick={() => router.push('/home/courses')}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+            className="touch-target-large px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 text-sm sm:text-base"
           >
             Back to Courses
           </button>
@@ -217,13 +217,13 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <div className="min-h-screen p-6">
+      <div className="min-h-screen-mobile responsive-padding">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold gradient-text mb-4">Course Not Found</h1>
-          <p className="text-xl text-white/70 mb-8">The learning plan you're looking for doesn't exist.</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">Course Not Found</h1>
+          <p className="text-base sm:text-lg md:text-xl text-white/70 mb-6 sm:mb-8 px-4">The learning plan you're looking for doesn't exist.</p>
           <button
             onClick={() => router.push('/home/courses')}
-            className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+            className="touch-target-large px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 text-sm sm:text-base"
           >
             Back to Courses
           </button>
@@ -233,47 +233,48 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Course Header */}
       <CourseHeader course={course} />
 
       {/* Navigation Tabs */}
       <div className="glass-secondary rounded-2xl overflow-hidden">
-        <div className="flex border-b border-white/20">
+        {/* Mobile Tab Navigation - Horizontal Scroll */}
+        <div className="flex border-b border-white/20 overflow-x-auto scrollbar-hide">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-6 py-4 font-medium transition-all duration-200 ${
+              className={`flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 sm:py-4 font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 min-w-0 text-sm sm:text-base ${
                 activeTab === tab.id
                   ? 'bg-white/10 text-white border-b-2 border-purple-500'
                   : 'text-white/70 hover:text-white hover:bg-white/5'
               }`}
             >
-              <tab.icon className="w-5 h-5" />
-              <span>{tab.label}</span>
+              <tab.icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+              <span className="hidden xs:inline sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
 
         {/* Tab Content */}
-        <div className="p-8">
+        <div className="p-4 sm:p-6 md:p-8">
           {activeTab === 'overview' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-8"
+              className="space-y-6 sm:space-y-8"
             >
               {/* What You'll Learn */}
               <div>
-                <h3 className="text-2xl font-bold text-white mb-4">What You'll Learn</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">What You'll Learn</h3>
+                <div className="mobile-grid-2 gap-3 sm:gap-4">
                   {course.whatYouWillLearn.map((item, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <CheckCircleIcon className="w-4 h-4 text-white" />
+                    <div key={index} className="flex items-start space-x-2 sm:space-x-3">
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <CheckCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                       </div>
-                      <p className="text-white/80">{item}</p>
+                      <p className="text-white/80 text-sm sm:text-base">{item}</p>
                     </div>
                   ))}
                 </div>
@@ -281,12 +282,12 @@ export default function CourseDetailPage() {
 
               {/* Prerequisites */}
               <div>
-                <h3 className="text-2xl font-bold text-white mb-4">Prerequisites</h3>
+                <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-3 sm:mb-4">Prerequisites</h3>
                 <ul className="space-y-2">
                   {course.prerequisites.map((item, index) => (
-                    <li key={index} className="flex items-center space-x-3 text-white/80">
-                      <div className="w-2 h-2 bg-white/60 rounded-full" />
-                      <span>{item}</span>
+                    <li key={index} className="flex items-center space-x-2 sm:space-x-3 text-white/80">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white/60 rounded-full flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{item}</span>
                     </li>
                   ))}
                 </ul>
@@ -343,20 +344,20 @@ export default function CourseDetailPage() {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      <div className="button-group-mobile justify-center">
         {course.progress && course.progress > 0 ? (
           <>
-            <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2">
-              <PlayCircleIcon className="w-5 h-5" />
+            <button className="touch-target-large px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto">
+              <PlayCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />
               <span>Continue Learning ({course.progress}%)</span>
             </button>
-            <button className="px-8 py-4 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all duration-200">
+            <button className="touch-target-large px-6 sm:px-8 py-3 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all duration-200 text-sm sm:text-base w-full sm:w-auto">
               Restart Course
             </button>
           </>
         ) : (
-          <button className="px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center space-x-2">
-            <PlayCircleIcon className="w-5 h-5" />
+          <button className="touch-target-large px-6 sm:px-8 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto">
+            <PlayCircleIcon className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Start Course</span>
           </button>
         )}

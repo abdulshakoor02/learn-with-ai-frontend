@@ -222,22 +222,22 @@ export default function CoursesPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen p-6">
+      <div className="min-h-screen-mobile responsive-padding">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-            <h1 className="text-4xl font-bold gradient-text mb-4">Loading Your Learning Plans...</h1>
-            <p className="text-xl text-white/70">Fetching your personalized learning paths</p>
+          <div className="text-center mb-8 sm:mb-12">
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-purple-500 mx-auto mb-3 sm:mb-4"></div>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">Loading Your Learning Plans...</h1>
+            <p className="text-base sm:text-lg md:text-xl text-white/70">Fetching your personalized learning paths</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mobile-grid-1 gap-4 sm:gap-6">
             {[...Array(3)].map((_, index) => (
-              <div key={index} className="glass-secondary rounded-2xl p-6 animate-pulse">
-                <div className="bg-white/20 h-48 rounded-lg mb-4"></div>
-                <div className="bg-white/20 h-6 rounded mb-2"></div>
-                <div className="bg-white/20 h-4 rounded mb-6"></div>
+              <div key={index} className="glass-secondary rounded-2xl p-4 sm:p-6 animate-pulse">
+                <div className="bg-white/20 h-32 sm:h-48 rounded-lg mb-3 sm:mb-4"></div>
+                <div className="bg-white/20 h-5 sm:h-6 rounded mb-2"></div>
+                <div className="bg-white/20 h-3 sm:h-4 rounded mb-4 sm:mb-6"></div>
                 <div className="flex justify-between">
-                  <div className="bg-white/20 h-4 w-20 rounded"></div>
-                  <div className="bg-white/20 h-4 w-16 rounded"></div>
+                  <div className="bg-white/20 h-3 sm:h-4 w-16 sm:w-20 rounded"></div>
+                  <div className="bg-white/20 h-3 sm:h-4 w-12 sm:w-16 rounded"></div>
                 </div>
               </div>
             ))}
@@ -250,14 +250,14 @@ export default function CoursesPage() {
   // Error state
   if (error && courses.length === 0) {
     return (
-      <div className="min-h-screen p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen-mobile responsive-padding">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl font-bold gradient-text mb-4">Error Loading Courses</h1>
-            <p className="text-xl text-red-400 mb-8">{error}</p>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">Error Loading Courses</h1>
+            <p className="text-base sm:text-lg md:text-xl text-red-400 mb-6 sm:mb-8 px-4">{error}</p>
             <button
               onClick={fetchCourses}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200"
+              className="touch-target-large px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-xl hover:from-purple-600 hover:to-blue-600 transition-all duration-200 text-sm sm:text-base"
             >
               Try Again
             </button>
@@ -270,18 +270,18 @@ export default function CoursesPage() {
   // Empty state
   if (courses.length === 0) {
     return (
-      <div className="min-h-screen p-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen-mobile responsive-padding">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center">
-            <h1 className="text-4xl font-bold gradient-text mb-4">My Learning Plans</h1>
-            <p className="text-xl text-white/80 mb-8">No learning plans found</p>
-            <div className="text-6xl mb-4">🎯</div>
-            <p className="text-white/70 mb-8">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">My Learning Plans</h1>
+            <p className="text-base sm:text-lg md:text-xl text-white/80 mb-6 sm:mb-8">No learning plans found</p>
+            <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4">🎯</div>
+            <p className="text-sm sm:text-base text-white/70 mb-6 sm:mb-8 px-4 max-w-md mx-auto">
               Create your first learning plan by chatting with our AI assistant and let us build a personalized path for you!
             </p>
             <button
               onClick={() => window.location.href = '/home'}
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200"
+              className="touch-target-large px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 text-sm sm:text-base"
             >
               Create Learning Plan
             </button>
@@ -292,18 +292,18 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen-mobile responsive-padding">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
+          className="text-center mb-8 sm:mb-12"
         >
-          <h1 className="text-4xl font-bold gradient-text mb-4">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold gradient-text mb-3 sm:mb-4">
             My Learning Plans
           </h1>
-          <p className="text-xl text-white/80 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/80 max-w-2xl mx-auto px-4">
             {error
               ? "Showing suggested learning paths while we resolve connection issues"
               : "Your personalized learning paths created by our AI assistant"
@@ -313,9 +313,9 @@ export default function CoursesPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="glass-accent mt-4 p-4 rounded-xl border border-yellow-500/30"
+              className="glass-accent mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl border border-yellow-500/30 mx-4 sm:mx-0"
             >
-              <p className="text-yellow-400 text-sm">
+              <p className="text-yellow-400 text-xs sm:text-sm">
                 ⚠️ Connection issues detected. Showing fallback plans.
               </p>
             </motion.div>
@@ -327,17 +327,17 @@ export default function CoursesPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass-secondary p-6 rounded-2xl mb-8"
+          className="glass-secondary p-4 sm:p-6 rounded-2xl mb-6 sm:mb-8"
         >
           {/* Search Bar */}
-          <div className="relative mb-6">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
+          <div className="relative mb-4 sm:mb-6">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-white/60" />
             <input
               type="text"
               placeholder="Search learning plans, topics, or prerequisites..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all duration-200"
+              className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2.5 sm:py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/50 focus:outline-none focus:border-purple-500 focus:bg-white/10 transition-all duration-200 text-sm sm:text-base touch-manipulation"
             />
           </div>
 
@@ -359,7 +359,7 @@ export default function CoursesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          className="mobile-grid-1 gap-4 sm:gap-6"
           style={{
             gridAutoRows: '1fr',
             alignItems: 'start'
@@ -383,11 +383,11 @@ export default function CoursesPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center py-12"
+            className="text-center py-8 sm:py-12"
           >
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-white mb-2">No learning plans match your criteria</h3>
-            <p className="text-white/70">
+            <div className="text-4xl sm:text-5xl md:text-6xl mb-3 sm:mb-4">🔍</div>
+            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">No learning plans match your criteria</h3>
+            <p className="text-sm sm:text-base text-white/70 px-4 max-w-md mx-auto">
               Try adjusting your search terms or filters to find more learning paths.
             </p>
           </motion.div>
@@ -399,30 +399,30 @@ export default function CoursesPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="glass-accent p-6 rounded-2xl"
+            className="glass-accent p-4 sm:p-6 rounded-2xl"
           >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
               <div>
-                <div className="text-3xl font-bold gradient-text">{filteredCourses.length}</div>
-                <div className="text-white/70">Learning Plans</div>
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text">{filteredCourses.length}</div>
+                <div className="text-white/70 text-xs sm:text-sm">Learning Plans</div>
               </div>
               <div>
-                <div className="text-3xl font-bold gradient-text">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text">
                   {filteredCourses.reduce((sum, course) => sum + (course.duration.includes('month') ? parseInt(course.duration) : Math.ceil(parseInt(course.duration) / 24)), 0)}
                 </div>
-                <div className="text-white/70">Total Months</div>
+                <div className="text-white/70 text-xs sm:text-sm">Total Months</div>
               </div>
               <div>
-                <div className="text-3xl font-bold gradient-text">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text">
                   {(filteredCourses.reduce((sum, course) => sum + course.rating, 0) / filteredCourses.length).toFixed(1)}
                 </div>
-                <div className="text-white/70">Average Rating</div>
+                <div className="text-white/70 text-xs sm:text-sm">Average Rating</div>
               </div>
               <div>
-                <div className="text-3xl font-bold gradient-text">
+                <div className="text-xl sm:text-2xl md:text-3xl font-bold gradient-text">
                   {filteredCourses.reduce((sum, course) => sum + (course.phases?.length || 0), 0)}
                 </div>
-                <div className="text-white/70">Learning Phases</div>
+                <div className="text-white/70 text-xs sm:text-sm">Learning Phases</div>
               </div>
             </div>
           </motion.div>
