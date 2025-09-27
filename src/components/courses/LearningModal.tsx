@@ -170,20 +170,56 @@ export const LearningModal = ({
   // Handle click outside modal
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
+      // Only close on backdrop click, not when clicking outside modal container
       if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose()
+        // Check if the click was on the backdrop area specifically
+        const target = e.target as Element
+        if (target.classList.contains('modal-backdrop-mobile') || 
+            target.closest('.modal-container-mobile') === e.currentTarget) {
+          onClose()
+        }
       }
     }
 
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside)
-      // Prevent body scroll when modal is open
-      document.body.style.overflow = 'hidden'
+      
+      // Different approach for mobile vs desktop
+      const isMobile = window.innerWidth < 768
+      
+      if (isMobile) {
+        // On mobile: Only prevent horizontal overflow and elastic bouncing
+        document.body.style.overflowX = 'hidden'
+        document.body.style.position = 'relative'
+        // Allow vertical scrolling on mobile so users can reposition the modal
+      } else {
+        // On desktop: Use the fixed position approach to prevent background scrolling
+        const scrollY = window.scrollY
+        document.body.style.position = 'fixed'
+        document.body.style.top = `-${scrollY}px`
+        document.body.style.width = '100%'
+        document.body.style.overflow = 'hidden'
+        document.body.setAttribute('data-scroll-y', scrollY.toString())
+      }
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
-      document.body.style.overflow = 'unset'
+      
+      // Restore body styles
+      const isMobile = window.innerWidth < 768
+      const scrollY = document.body.getAttribute('data-scroll-y')
+      
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      document.body.style.overflow = ''
+      document.body.style.overflowX = ''
+      
+      if (!isMobile && scrollY) {
+        window.scrollTo(0, parseInt(scrollY))
+        document.body.removeAttribute('data-scroll-y')
+      }
     }
   }, [isOpen, onClose])
 
@@ -240,14 +276,20 @@ export const LearningModal = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+        className="fixed inset-0 z-50 flex justify-center p-4 sm:p-6 modal-container-mobile"
       >
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm modal-backdrop-mobile"
+          onClick={(e) => {
+            // Only close if clicking directly on backdrop, not on modal content
+            if (e.target === e.currentTarget) {
+              onClose()
+            }
+          }}
         />
 
         {/* Modal */}
@@ -257,29 +299,29 @@ export const LearningModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl max-h-[90vh] sm:max-h-[85vh] glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
+          className="relative w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[85vh] glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden modal-mobile my-4 sm:my-0"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-white/20 flex-shrink-0">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-white/20 flex-shrink-0">
+            <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
               {module && (
                 <>
-                  <div className={`p-3 rounded-xl border ${getModuleColor(module.type)}`}>
+                  <div className={`p-2 sm:p-3 rounded-xl border ${getModuleColor(module.type)} flex-shrink-0`}>
                     {(() => {
                       const Icon = getModuleIcon(module.type)
-                      return <Icon className="w-6 h-6" />
+                      return <Icon className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
                     })()}
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white line-clamp-1">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white line-clamp-1">
                       {module.title}
                     </h2>
-                    <div className="flex items-center space-x-3 mt-1">
-                      <span className="text-white/70 text-sm">
+                    <div className="flex items-center space-x-2 sm:space-x-3 mt-1">
+                      <span className="text-white/70 text-xs sm:text-sm">
                         {getModuleTypeLabel(module.type)}
                       </span>
                       <span className="text-white/50">•</span>
-                      <span className="text-white/70 text-sm">
+                      <span className="text-white/70 text-xs sm:text-sm">
                         {module.duration}
                       </span>
                     </div>
@@ -289,26 +331,26 @@ export const LearningModal = ({
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200"
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target"
               aria-label="Close modal"
             >
-              <XMarkIcon className="w-6 h-6 text-white/70 hover:text-white" />
+              <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white/70 hover:text-white" />
             </button>
           </div>
 
           {/* Content */}
-          <div className="p-4 sm:p-6 flex-1 overflow-y-auto min-h-0">
+          <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0 modal-scroll-fix">
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-12 space-y-4"
+                className="flex flex-col items-center justify-center py-8 sm:py-12 space-y-4"
               >
-                <ArrowPathIcon className="w-12 h-12 text-purple-400 animate-spin" />
-                <h3 className="text-xl font-semibold text-white">
+                <ArrowPathIcon className="w-10 h-10 sm:w-12 sm:h-12 text-purple-400 animate-spin" />
+                <h3 className="text-lg sm:text-xl font-semibold text-white">
                   Generating Learning Content
                 </h3>
-                <p className="text-white/70 text-center max-w-md">
+                <p className="text-white/70 text-center max-w-md text-sm sm:text-base px-4">
                   Our AI is creating personalized learning material for "{module?.title}". This may take a few moments...
                 </p>
               </motion.div>
@@ -318,20 +360,20 @@ export const LearningModal = ({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-12 space-y-4"
+                className="flex flex-col items-center justify-center py-8 sm:py-12 space-y-4"
               >
-                <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                  <XMarkIcon className="w-8 h-8 text-red-400" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <XMarkIcon className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" />
                 </div>
-                <h3 className="text-xl font-semibold text-white">
+                <h3 className="text-lg sm:text-xl font-semibold text-white">
                   Unable to Generate Content
                 </h3>
-                <p className="text-red-400 text-center max-w-md">
+                <p className="text-red-400 text-center max-w-md text-sm sm:text-base px-4">
                   {error}
                 </p>
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors duration-200"
+                  className="touch-target px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors duration-200 text-sm sm:text-base"
                 >
                   Close
                 </button>
@@ -344,9 +386,9 @@ export const LearningModal = ({
                 animate={{ opacity: 1, y: 0 }}
                 className="prose prose-invert max-w-none"
               >
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Format the content with proper styling */}
-                  <div className="text-white/90 leading-relaxed whitespace-pre-wrap">
+                  <div className="text-white/90 leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
                     {content}
                   </div>
                 </div>
@@ -357,13 +399,13 @@ export const LearningModal = ({
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col items-center justify-center py-12 space-y-4"
+                className="flex flex-col items-center justify-center py-8 sm:py-12 space-y-4"
               >
-                <BookOpenIcon className="w-16 h-16 text-white/40" />
-                <h3 className="text-xl font-semibold text-white">
+                <BookOpenIcon className="w-12 h-12 sm:w-16 sm:h-16 text-white/40" />
+                <h3 className="text-lg sm:text-xl font-semibold text-white">
                   Ready to Learn
                 </h3>
-                <p className="text-white/70 text-center max-w-md">
+                <p className="text-white/70 text-center max-w-md text-sm sm:text-base px-4">
                   Click the start button to generate AI-powered learning content for this module.
                 </p>
               </motion.div>
@@ -372,12 +414,12 @@ export const LearningModal = ({
 
           {/* Footer */}
           {content && !isLoading && !error && (
-            <div className="flex items-center justify-between p-4 sm:p-6 border-t border-white/20 bg-white/5 flex-shrink-0">
-              <div className="flex items-center space-x-2 text-sm text-white/70">
-                <div className={`w-2 h-2 rounded-full ${
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 bg-white/5 flex-shrink-0">
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/70">
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
                   phaseCompleted ? 'bg-yellow-400' : isCompleted ? 'bg-green-400' : 'bg-blue-400'
                 }`} />
-                <span>
+                <span className="line-clamp-2 sm:line-clamp-1">
                   {phaseCompleted 
                     ? `Phase "${phaseName}" completed! 🎉` 
                     : isCompleted 
@@ -390,7 +432,7 @@ export const LearningModal = ({
                 <button
                   onClick={handleComplete}
                   disabled={isCompleting || isCompleted}
-                  className={`px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center space-x-2 ${
+                  className={`touch-target px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto ${
                     isCompleted
                       ? 'bg-green-500 text-white'
                       : isCompleting
@@ -400,12 +442,12 @@ export const LearningModal = ({
                 >
                   {isCompleting ? (
                     <>
-                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                      <ArrowPathIcon className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
                       <span>Saving...</span>
                     </>
                   ) : isCompleted ? (
                     <>
-                      <CheckIcon className="w-4 h-4" />
+                      <CheckIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Completed</span>
                     </>
                   ) : (
@@ -415,7 +457,7 @@ export const LearningModal = ({
               ) : (
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 font-medium"
+                  className="touch-target px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto"
                 >
                   Continue Learning
                 </button>

@@ -329,3 +329,58 @@ body {
     display: none;
   }
 }
+
+/* iOS Safari modal scroll fix */
+.modal-scroll-fix {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* Prevent zoom on mobile inputs */
+.no-zoom {
+  font-size: 16px;
+}
+
+@media screen and (max-width: 767px) {
+  .no-zoom {
+    font-size: 16px !important;
+  }
+}
+
+/* Better modal positioning on mobile */
+.modal-mobile {
+  @media (max-height: 600px) {
+    max-height: 95vh;
+  }
+  
+  @media (max-height: 500px) {
+    max-height: 98vh;
+  }
+}
+
+/* Modal container improvements for mobile */
+.modal-container-mobile {
+  /* Allow scrolling on mobile */
+  @media (max-width: 767px) {
+    align-items: flex-start;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    min-height: 100vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Center on desktop */
+  @media (min-width: 768px) {
+    align-items: center;
+    overflow: hidden;
+  }
+}
+
+/* Backdrop that doesn't interfere with scrolling on mobile */
+.modal-backdrop-mobile {
+  @media (max-width: 767px) {
+    position: fixed;
+    pointer-events: none;
+  }
+}
