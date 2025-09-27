@@ -55,6 +55,16 @@
   -ms-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  /* Force minimum touch target size for iOS */
+  min-width: 44px;
+  min-height: 44px;
+  /* Ensure touch events work */
+  pointer-events: auto;
+  /* Prevent iOS touch delay */
+  -webkit-touch-callout: none;
+  /* Fix iOS button rendering */
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 /* Additional iOS webkit fixes */
@@ -139,4 +149,74 @@
   
   /* Force repaint */
   will-change: transform;
+  
+  /* Ensure touch events work on iOS */
+  pointer-events: auto;
+  
+  /* Fix iOS touch delay */
+  -webkit-touch-callout: none;
+  
+  /* Minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Fix iOS touch event issues */
+.ios-modal-fix {
+  /* Ensure modal doesn't block touch events */
+  pointer-events: auto;
+}
+
+.ios-modal-fix .modal-backdrop-mobile {
+  /* Backdrop should receive touch events */
+  pointer-events: auto;
+  touch-action: none;
+}
+
+/* iOS-specific button click fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .ios-modal-fix .touch-target {
+    /* Force hardware layer for better touch response */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    
+    /* Remove iOS button styles that might interfere */
+    -webkit-appearance: none;
+    appearance: none;
+    
+    /* Ensure clickable area */
+    position: relative;
+    z-index: 9999;
+    
+    /* Better touch handling */
+    cursor: pointer;
+    
+    /* Fix iOS double-tap zoom */
+    touch-action: manipulation;
+    
+    /* Force proper button rendering */
+    background-clip: padding-box;
+    
+    /* Ensure button is visible and interactable */
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    
+    /* Fix iOS Safari click delay */
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Fix iOS Safari button blur */
+  .ios-modal-fix .touch-target:active {
+    -webkit-transform: translate3d(0, 0, 0) scale(0.98);
+    transform: translate3d(0, 0, 0) scale(0.98);
+    opacity: 0.8;
+  }
+  
+  /* Ensure buttons are above all other elements on iOS */
+  .ios-modal-fix .mobile-close-fix,
+  .ios-modal-fix .mobile-button-fix button {
+    z-index: 10000 !important;
+    position: relative !important;
+  }
 }

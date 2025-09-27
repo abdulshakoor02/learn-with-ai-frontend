@@ -63,7 +63,13 @@ export const LearningModal = ({
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
       return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
     }
-    setIsIOS(checkIOS())
+    const isIOSDevice = checkIOS()
+    setIsIOS(isIOSDevice)
+    
+    // Debug logging for iOS
+    if (isIOSDevice) {
+      console.log('iOS device detected, applying iOS-specific fixes')
+    }
   }, [])
 
   // Reset completion state when modal opens
@@ -191,9 +197,24 @@ export const LearningModal = ({
         }
       }
     }
+    
+    const handleTouchOutside = (e: TouchEvent) => {
+      // Handle touch events for iOS
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        const target = e.target as Element
+        if (target.classList.contains('modal-backdrop-mobile')) {
+          onClose()
+        }
+      }
+    }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      // Use different event listeners for different platforms
+      if (isIOS) {
+        document.addEventListener('touchend', handleTouchOutside)
+      } else {
+        document.addEventListener('mousedown', handleClickOutside)
+      }
       
       // Different approach for mobile vs desktop
       const isMobile = window.innerWidth < 768
@@ -215,7 +236,11 @@ export const LearningModal = ({
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      if (isIOS) {
+        document.removeEventListener('touchend', handleTouchOutside)
+      } else {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
       
       // Restore body styles
       const isMobile = window.innerWidth < 768
@@ -232,7 +257,7 @@ export const LearningModal = ({
         document.body.removeAttribute('data-scroll-y')
       }
     }
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, isIOS])
 
   const getModuleIcon = (type: string) => {
     switch (type) {
@@ -299,12 +324,20 @@ export const LearningModal = ({
             backdropFilter: 'blur(4px)',
             WebkitBackdropFilter: 'blur(4px)', // iOS Safari specific
             transform: 'translateZ(0)', // Force hardware layer
-            WebkitTransform: 'translateZ(0)'
+            WebkitTransform: 'translateZ(0)',
+            pointerEvents: 'auto', // Ensure backdrop can receive events
+            touchAction: 'none' // Prevent iOS scroll during backdrop interaction
           }}
           onClick={(e) => {
             // Only close if clicking directly on backdrop, not on modal content
             if (e.target === e.currentTarget) {
               onClose()
+            }
+          }}
+          onTouchStart={(e) => {
+            // Prevent iOS touch issues with backdrop
+            if (e.target === e.currentTarget) {
+              e.stopPropagation()
             }
           }}
         />
@@ -324,6 +357,12 @@ export const LearningModal = ({
             WebkitTransform: 'translateZ(0)', // Webkit-specific hardware acceleration
             isolation: 'isolate', // Create new stacking context for iOS
             willChange: 'transform', // Hint for GPU acceleration
+            pointerEvents: 'auto', // Ensure modal can receive touch events
+            touchAction: 'pan-y', // Allow vertical scrolling inside modal
+          }}
+          onTouchStart={(e) => {
+            // Prevent touch event bubbling to backdrop
+            e.stopPropagation()
           }}
         >
           {/* Header */}
@@ -355,16 +394,19 @@ export const LearningModal = ({
               )}
             </div>
             <button
-              onClick={onClose}
+              onClick={(e) => {
+                console.log('Close button clicked')
+                onClose()
+              }}
               className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target mobile-close-fix"
               aria-label="Close modal"
               style={{
-                minWidth: '44px',
-                minHeight: '44px',
+                minWidth: '48px',
+                minHeight: '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 999,
+                zIndex: 9999,
                 position: 'relative',
                 backgroundColor: 'rgba(0, 0, 0, 0.4)',
                 backdropFilter: 'blur(8px)',
@@ -373,7 +415,12 @@ export const LearningModal = ({
                 transform: 'translateZ(0)',
                 WebkitTransform: 'translateZ(0)',
                 isolation: 'isolate',
-                willChange: 'transform'
+                willChange: 'transform',
+                pointerEvents: 'auto',
+                touchAction: 'manipulation',
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none'
               }}
             >
               <XMarkIcon 
@@ -494,7 +541,12 @@ export const LearningModal = ({
               </div>
               {learningPlanId && topicTitle ? (
                 <button
-                  onClick={handleComplete}
+                  onClick={(e) => {
+                    if (!isCompleting && !isCompleted) {
+                      console.log('Save button clicked')
+                      handleComplete()
+                    }
+                  }}
                   disabled={isCompleting || isCompleted}
                   className={`touch-target px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
                     isCompleted
@@ -505,13 +557,18 @@ export const LearningModal = ({
                   }`}
                   style={{
                     minHeight: '48px',
-                    zIndex: 999,
+                    zIndex: 9999,
                     position: 'relative',
                     transform: 'translateZ(0)',
                     WebkitTransform: 'translateZ(0)',
                     isolation: 'isolate',
                     willChange: 'transform',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)'
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)',
+                    pointerEvents: isCompleting || isCompleted ? 'none' : 'auto',
+                    touchAction: 'manipulation',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none'
                   }}
                 >
                   {isCompleting ? (
@@ -530,17 +587,25 @@ export const LearningModal = ({
                 </button>
               ) : (
                 <button
-                  onClick={onClose}
+                  onClick={(e) => {
+                    console.log('Continue button clicked')
+                    onClose()
+                  }}
                   className="touch-target px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
                   style={{
                     minHeight: '48px',
-                    zIndex: 999,
+                    zIndex: 9999,
                     position: 'relative',
                     transform: 'translateZ(0)',
                     WebkitTransform: 'translateZ(0)',
                     isolation: 'isolate',
                     willChange: 'transform',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)'
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)',
+                    pointerEvents: 'auto',
+                    touchAction: 'manipulation',
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none'
                   }}
                 >
                   Continue Learning
