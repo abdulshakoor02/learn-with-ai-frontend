@@ -28,6 +28,7 @@ interface Section {
   id: string
   title: string
   modules: Module[]
+  completed?: boolean
 }
 
 interface CourseTimelineProps {
@@ -197,18 +198,37 @@ export const CourseTimeline = ({ sections, learningPlanId }: CourseTimelineProps
                 className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-all duration-200"
               >
                 <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {sectionIndex + 1}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+                    section.completed 
+                      ? 'bg-gradient-to-br from-yellow-500 to-orange-500' 
+                      : 'bg-gradient-to-br from-purple-500 to-blue-500'
+                  }`}>
+                    {section.completed ? (
+                      <CheckCircleIcon className="w-6 h-6" />
+                    ) : (
+                      sectionIndex + 1
+                    )}
                   </div>
                   <div className="text-left">
-                    <h4 className="text-xl font-bold text-white">{section.title}</h4>
+                    <div className="flex items-center space-x-2">
+                      <h4 className="text-xl font-bold text-white">{section.title}</h4>
+                      {section.completed && (
+                        <span className="text-xs px-2 py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-full">
+                          Phase Complete 🎉
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-4 mt-1">
                       <span className="text-white/70 text-sm">
                         {progress.completed}/{progress.total} modules
                       </span>
                       <div className="w-24 bg-white/10 rounded-full h-1">
                         <div
-                          className="bg-gradient-to-r from-purple-500 to-blue-500 h-1 rounded-full"
+                          className={`h-1 rounded-full ${
+                            section.completed 
+                              ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                              : 'bg-gradient-to-r from-purple-500 to-blue-500'
+                          }`}
                           style={{ width: `${progress.percentage}%` }}
                         />
                       </div>
@@ -324,15 +344,26 @@ export const CourseTimeline = ({ sections, learningPlanId }: CourseTimelineProps
         error={modalState.error}
         learningPlanId={learningPlanId}
         topicTitle={modalState.selectedModule?.title || undefined}
+        phaseName={modalState.sectionTitle}
         onTopicComplete={async (planId, topic) => {
           try {
-            // Optimistic UI update
+            // Optimistic UI update for topic completion
             setLocalSections(prev => prev.map(sec => ({
               ...sec,
               modules: sec.modules.map(m => m.title === topic ? { ...m, completed: true } : m)
             })))
           } catch (e) {
-            // No-op; LearningModal already handles API call when no callback
+            // No-op; LearningModal already handles API call
+          }
+        }}
+        onPhaseComplete={async (planId, phaseName) => {
+          try {
+            // Optimistic UI update for phase completion
+            setLocalSections(prev => prev.map(sec => 
+              sec.title === phaseName ? { ...sec, completed: true } : sec
+            ))
+          } catch (e) {
+            // No-op; LearningModal already handles API call
           }
         }}
       />

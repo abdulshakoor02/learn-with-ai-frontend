@@ -190,6 +190,7 @@ Check the browser console for API logs.`)
           error={error}
           learningPlanId="test-learning-plan-id"
           topicTitle="Introduction to Machine Learning Algorithms"
+          phaseName="Mathematical Foundations"
         />
       </div>
     </div>
