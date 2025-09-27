@@ -8,6 +8,7 @@ import { EyeIcon, EyeSlashIcon, CheckCircleIcon } from '@heroicons/react/24/outl
 import { registerSchema, type RegisterFormData } from '../../utils/validation'
 import { UsersService } from '@/services/api'
 import { Button, LoadingSpinner } from '../ui'
+import { useToast } from '@/components/providers'
 import { cn } from '../../utils/cn'
 
 interface ModalRegisterFormProps {
@@ -19,8 +20,8 @@ export const ModalRegisterForm = ({
   onSwitchToLogin,
   onClose
 }: ModalRegisterFormProps) => {
+  const { showError, showSuccess } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -49,7 +50,6 @@ export const ModalRegisterForm = ({
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setIsLoading(true)
-      setError(null)
 
       // Prepare data for API (combine first and last name)
       const userData = {
@@ -65,6 +65,7 @@ export const ModalRegisterForm = ({
       const response = await UsersService.createUser(userData)
       
       console.log('Registration successful:', response)
+      showSuccess('Account created successfully! Welcome to LearnAI!')
       setSuccess(true)
       
       // Auto-close modal after showing success message
@@ -95,7 +96,7 @@ export const ModalRegisterForm = ({
         errorMessage = 'An account with this mobile number already exists. Please use a different number or try signing in.'
       }
       
-      setError(errorMessage)
+      showError(errorMessage)
     } finally {
       setIsLoading(false)
     }
@@ -146,17 +147,6 @@ export const ModalRegisterForm = ({
         <h2 className="text-2xl font-bold text-white">Create Account</h2>
         <p className="text-white/70">Join us and start your learning journey</p>
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-4 rounded-xl bg-red-500 bg-opacity-10 border border-red-500 border-opacity-20 text-red-400 text-sm"
-        >
-          {error}
-        </motion.div>
-      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
         {/* Name Fields */}

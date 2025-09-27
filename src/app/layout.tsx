@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { Inter, Sora, JetBrains_Mono } from "next/font/google"
+import { ToastProvider } from '@/components/providers'
 import "./globals.css"
 
 const inter = Inter({
@@ -104,7 +105,9 @@ export default function RootLayout({
           inter.variable
         } ${sora.variable} ${jetbrainsMono.variable} font-sans antialiased overflow-x-hidden`}
       >
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   )
