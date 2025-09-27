@@ -19,6 +19,115 @@ export class OpenAIService {
     }
   }
 
+  static async generateLearningContent(moduleTitle: string, moduleType: string, sectionTitle?: string): Promise<string> {
+    try {
+      const prompt = this.createLearningPrompt(moduleTitle, moduleType, sectionTitle)
+      
+      const response = await apiRequest(`/openai/chat`, {
+        method: 'POST',
+        body: JSON.stringify({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert educational content creator and tutor. Create comprehensive, engaging, and structured learning content that is educational and easy to understand. Always provide practical examples and clear explanations.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        })
+      })
+
+      // Extract the content from OpenAI's response format
+      // if (response?.choices?.[0]?.message?.content) {
+      //   return response.choices[0].message.content
+      // } else {
+      //   throw new Error('No content received from OpenAI')
+      // }
+      if (response?.data) {
+        return response.data
+      } else {
+        throw new Error('No content received from OpenAI')
+      }
+    } catch (error) {
+      console.error('Learning content generation error:', error)
+      throw new Error('Failed to generate learning content. Please try again.')
+    }
+  }
+
+  private static createLearningPrompt(moduleTitle: string, moduleType: string, sectionTitle?: string): string {
+    const baseContext = sectionTitle ? `This is part of the "${sectionTitle}" section.` : ''
+    
+    switch (moduleType) {
+      case 'video':
+        return `Create a comprehensive video lesson script for "${moduleTitle}". ${baseContext}
+
+Please structure the content as follows:
+1. **Introduction** - Brief overview and learning objectives
+2. **Main Content** - Detailed explanation with practical examples
+3. **Key Concepts** - Important points to remember
+4. **Practical Examples** - Real-world applications
+5. **Summary** - Quick recap of main points
+6. **Next Steps** - What to focus on after this lesson
+
+Make it engaging, educational, and easy to follow. Include code examples if relevant to the topic.`
+
+      case 'reading':
+        return `Create detailed reading material for "${moduleTitle}". ${baseContext}
+
+Please provide:
+1. **Overview** - Introduction to the topic
+2. **Core Concepts** - Fundamental principles and definitions
+3. **Detailed Explanation** - In-depth coverage of the subject
+4. **Examples and Applications** - Practical use cases
+5. **Best Practices** - Industry standards and recommendations
+6. **Common Pitfalls** - What to avoid
+7. **Further Reading** - Suggested resources for deeper learning
+
+Make it comprehensive yet accessible, with clear headings and well-structured content.`
+
+      case 'quiz':
+        return `Create an interactive quiz for "${moduleTitle}". ${baseContext}
+
+Please provide:
+1. **Quiz Instructions** - How to approach the quiz
+2. **10 Multiple Choice Questions** - With 4 options each
+3. **Correct Answers** - Clearly marked
+4. **Explanations** - Detailed reasoning for each correct answer
+5. **Key Concepts Review** - Summary of topics covered
+6. **Performance Tips** - How to improve understanding
+
+Make the questions progressively challenging and educational.`
+
+      case 'assignment':
+        return `Create a practical assignment for "${moduleTitle}". ${baseContext}
+
+Please provide:
+1. **Assignment Brief** - Clear description and objectives
+2. **Requirements** - Specific deliverables and criteria
+3. **Step-by-Step Guide** - Detailed instructions
+4. **Resources Needed** - Tools, libraries, or materials required
+5. **Evaluation Rubric** - How the work will be assessed
+6. **Tips for Success** - Best practices and common mistakes to avoid
+7. **Extension Activities** - Optional advanced challenges
+
+Make it practical, achievable, and directly related to the learning objectives.`
+
+      default:
+        return `Create comprehensive learning material for "${moduleTitle}". ${baseContext}
+
+Please provide well-structured educational content that includes:
+1. Clear explanations of key concepts
+2. Practical examples and applications
+3. Step-by-step guidance where appropriate
+4. Important tips and best practices
+5. Summary of key takeaways
+
+Make it engaging, informative, and suitable for learners at various levels.`
+    }
+  }
+
   static async generateLearningPlan(userGoals: string): Promise<LearningPlanData> {
     const planRequest: OpenAIJsonRequest = {
       messages: [
