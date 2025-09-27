@@ -37,6 +37,10 @@ export const registerSchema = z.object({
     .min(1, 'Last name is required')
     .min(2, 'Last name must be at least 2 characters')
     .max(50, 'Last name must be less than 50 characters'),
+  mobile: z
+    .string()
+    .min(1, 'Mobile number is required')
+    .regex(/^\+?[1-9]\d{1,14}$/, 'Please enter a valid mobile number with country code (e.g., +1234567890)'),
   agreeToTerms: z
     .boolean()
     .refine(val => val === true, 'You must agree to the terms and conditions')

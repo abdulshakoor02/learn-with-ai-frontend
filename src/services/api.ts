@@ -197,6 +197,43 @@ Make it engaging, informative, and suitable for learners at various levels.`
   }
 }
 
+// User Registration API service
+export class UsersService {
+  static async createUser(userData: {
+    name: string
+    email: string
+    mobile: string
+    password: string
+  }): Promise<any> {
+    try {
+      const response = await apiRequest('/users', {
+        method: 'POST',
+        body: JSON.stringify(userData)
+      })
+      return response
+    } catch (error) {
+      console.error('Create user error:', error)
+      throw error
+    }
+  }
+
+  static async loginUser(credentials: {
+    email: string
+    password: string
+  }): Promise<{ access_token: string }> {
+    try {
+      const response = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials)
+      })
+      return response
+    } catch (error) {
+      console.error('Login user error:', error)
+      throw error
+    }
+  }
+}
+
 // Learning Plans API service
 export class LearningPlansService {
   static async createLearningPlan(planData: LearningPlanData): Promise<any> {

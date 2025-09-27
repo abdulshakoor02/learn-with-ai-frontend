@@ -152,6 +152,31 @@ export const RegisterForm = ({ onSwitchToLogin, onClose }: RegisterFormProps) =>
           )}
         </div>
 
+        {/* Mobile Field */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-white/80">
+            Mobile Number
+          </label>
+          <input
+            {...register('mobile')}
+            type="tel"
+            placeholder="Enter your mobile number (e.g., +1234567890)"
+            className={cn(
+              'w-full px-4 py-3 glass-input',
+              errors.mobile && 'border-red-500 ring-4 ring-red-500/20'
+            )}
+          />
+          {errors.mobile && (
+            <motion.p
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-red-400 text-sm"
+            >
+              {errors.mobile.message}
+            </motion.p>
+          )}
+        </div>
+
         {/* Password Field */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-white/80">
