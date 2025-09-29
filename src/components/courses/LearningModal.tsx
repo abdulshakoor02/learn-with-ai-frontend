@@ -56,6 +56,19 @@ export const LearningModal = ({
   const [isCompleted, setIsCompleted] = useState(false)
   const [phaseCompleted, setPhaseCompleted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
+  
+  // iOS-specific touch handler that works around Safari touch issues
+  const createIOSTouchHandler = (callback: () => void) => {
+    return (e: TouchEvent | React.TouchEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      
+      // Add a small delay to ensure touch event is properly registered
+      setTimeout(() => {
+        callback()
+      }, 50)
+    }
+  }
 
   // Detect iOS device
   useEffect(() => {
@@ -69,6 +82,18 @@ export const LearningModal = ({
     // Debug logging for iOS
     if (isIOSDevice) {
       console.log('iOS device detected, applying iOS-specific fixes')
+      console.log('Viewport dimensions:', window.innerWidth, 'x', window.innerHeight)
+      console.log('Orientation:', window.innerHeight > window.innerWidth ? 'Portrait' : 'Landscape')
+      console.log('Device pixel ratio:', window.devicePixelRatio)
+      
+      // Add viewport meta tag fix for iOS if not present
+      let viewportMeta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement
+      if (!viewportMeta) {
+        viewportMeta = document.createElement('meta')
+        viewportMeta.name = 'viewport'
+        document.head.appendChild(viewportMeta)
+      }
+      viewportMeta.content = 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover'
     }
   }, [])
 
@@ -349,19 +374,22 @@ export const LearningModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className={`relative w-full max-w-4xl h-[70vh] max-h-[70vh] sm:max-h-[90vh] md:max-h-[85vh] glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden modal-mobile modal-content-mobile my-4 sm:my-0 ${isIOS ? 'ios-modal-fix' : ''}`}
+          className={`relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden modal-mobile modal-content-mobile ${isIOS ? 'ios-modal-fix ios-portrait-fix' : ''}`}
           style={{
-            transform: 'translateZ(0)', // Force hardware acceleration to prevent blur
-            backfaceVisibility: 'hidden', // Fix for mobile rendering issues
+            height: isIOS && window.innerHeight > window.innerWidth ? '80vh' : '70vh',
+            maxHeight: isIOS && window.innerHeight > window.innerWidth ? '80vh' : '70vh',
+            margin: isIOS ? '10vh auto' : '4vh auto 0',
+            transform: 'translate3d(0, 0, 0)', // Force 3D transform for iOS
+            backfaceVisibility: 'hidden',
             WebkitBackfaceVisibility: 'hidden',
-            WebkitTransform: 'translateZ(0)', // Webkit-specific hardware acceleration
-            isolation: 'isolate', // Create new stacking context for iOS
-            willChange: 'transform', // Hint for GPU acceleration
-            pointerEvents: 'auto', // Ensure modal can receive touch events
-            touchAction: 'pan-y', // Allow vertical scrolling inside modal
+            WebkitTransform: 'translate3d(0, 0, 0)',
+            isolation: 'isolate',
+            willChange: 'transform',
+            pointerEvents: 'auto',
+            touchAction: 'pan-y',
+            contain: 'layout style paint'
           }}
           onTouchStart={(e) => {
-            // Prevent touch event bubbling to backdrop
             e.stopPropagation()
           }}
         >
@@ -395,32 +423,53 @@ export const LearningModal = ({
             </div>
             <button
               onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
                 console.log('Close button clicked')
                 onClose()
               }}
-              className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target mobile-close-fix"
+              onTouchEnd={isIOS ? createIOSTouchHandler(() => {
+                console.log('Close button touch end (iOS)')
+                onClose()
+              }) : (e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                console.log('Close button touch end')
+                onClose()
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                console.log('Close button touch start')
+              }}
+              className={`p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0 touch-target mobile-close-fix ${isIOS ? 'ios-button-fix' : ''}`}
               aria-label="Close modal"
               style={{
-                minWidth: '48px',
-                minHeight: '48px',
+                minWidth: isIOS ? '54px' : '48px',
+                minHeight: isIOS ? '54px' : '48px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                zIndex: 9999,
+                zIndex: 99999,
                 position: 'relative',
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backgroundColor: isIOS ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.4)',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                transform: 'translateZ(0)',
-                WebkitTransform: 'translateZ(0)',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                borderRadius: '12px',
+                transform: 'translate3d(0, 0, 0)',
+                WebkitTransform: 'translate3d(0, 0, 0)',
                 isolation: 'isolate',
                 willChange: 'transform',
                 pointerEvents: 'auto',
                 touchAction: 'manipulation',
                 WebkitTouchCallout: 'none',
                 WebkitUserSelect: 'none',
-                userSelect: 'none'
+                userSelect: 'none',
+                WebkitAppearance: 'none',
+                cursor: 'pointer',
+                opacity: 1,
+                visibility: 'visible'
               }}
             >
               <XMarkIcon 
@@ -542,13 +591,33 @@ export const LearningModal = ({
               {learningPlanId && topicTitle ? (
                 <button
                   onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
                     if (!isCompleting && !isCompleted) {
                       console.log('Save button clicked')
                       handleComplete()
                     }
                   }}
+                  onTouchEnd={isIOS ? createIOSTouchHandler(() => {
+                    console.log('Save button touch end (iOS)')
+                    if (!isCompleting && !isCompleted) {
+                      handleComplete()
+                    }
+                  }) : (e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('Save button touch end')
+                    if (!isCompleting && !isCompleted) {
+                      handleComplete()
+                    }
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('Save button touch start')
+                  }}
                   disabled={isCompleting || isCompleted}
-                  className={`touch-target px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
+                  className={`touch-target px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${isIOS ? 'ios-button-fix' : ''} ${
                     isCompleted
                       ? 'bg-green-600 text-white border border-green-400'
                       : isCompleting
@@ -556,11 +625,11 @@ export const LearningModal = ({
                       : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border border-purple-400'
                   }`}
                   style={{
-                    minHeight: '48px',
-                    zIndex: 9999,
+                    minHeight: isIOS ? '54px' : '48px',
+                    zIndex: 99999,
                     position: 'relative',
-                    transform: 'translateZ(0)',
-                    WebkitTransform: 'translateZ(0)',
+                    transform: 'translate3d(0, 0, 0)',
+                    WebkitTransform: 'translate3d(0, 0, 0)',
                     isolation: 'isolate',
                     willChange: 'transform',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)',
@@ -568,7 +637,11 @@ export const LearningModal = ({
                     touchAction: 'manipulation',
                     WebkitTouchCallout: 'none',
                     WebkitUserSelect: 'none',
-                    userSelect: 'none'
+                    userSelect: 'none',
+                    WebkitAppearance: 'none',
+                    cursor: isCompleting || isCompleted ? 'default' : 'pointer',
+                    opacity: 1,
+                    visibility: 'visible'
                   }}
                 >
                   {isCompleting ? (
@@ -588,16 +661,32 @@ export const LearningModal = ({
               ) : (
                 <button
                   onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
                     console.log('Continue button clicked')
                     onClose()
                   }}
-                  className="touch-target px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
+                  onTouchEnd={isIOS ? createIOSTouchHandler(() => {
+                    console.log('Continue button touch end (iOS)')
+                    onClose()
+                  }) : (e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('Continue button touch end')
+                    onClose()
+                  }}
+                  onTouchStart={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('Continue button touch start')
+                  }}
+                  className={`touch-target px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400 ${isIOS ? 'ios-button-fix' : ''}`}
                   style={{
-                    minHeight: '48px',
-                    zIndex: 9999,
+                    minHeight: isIOS ? '54px' : '48px',
+                    zIndex: 99999,
                     position: 'relative',
-                    transform: 'translateZ(0)',
-                    WebkitTransform: 'translateZ(0)',
+                    transform: 'translate3d(0, 0, 0)',
+                    WebkitTransform: 'translate3d(0, 0, 0)',
                     isolation: 'isolate',
                     willChange: 'transform',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2)',
@@ -605,7 +694,11 @@ export const LearningModal = ({
                     touchAction: 'manipulation',
                     WebkitTouchCallout: 'none',
                     WebkitUserSelect: 'none',
-                    userSelect: 'none'
+                    userSelect: 'none',
+                    WebkitAppearance: 'none',
+                    cursor: 'pointer',
+                    opacity: 1,
+                    visibility: 'visible'
                   }}
                 >
                   Continue Learning
