@@ -7,9 +7,12 @@ import '@/styles/ios-modal-fixes.css'
 export default function IOSTestPage() {
   const [isIOS, setIsIOS] = useState(false)
   const [clickCount, setClickCount] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     const checkIOS = () => {
+      if (typeof window === 'undefined') return false
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
       return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
     }
@@ -30,9 +33,9 @@ export default function IOSTestPage() {
         </h1>
         
         <div className="space-y-4 text-white/80 text-sm mb-8">
-          <p><strong>Device:</strong> {isIOS ? 'iOS' : 'Non-iOS'}</p>
-          <p><strong>User Agent:</strong> {navigator.userAgent}</p>
-          <p><strong>Viewport:</strong> {window.innerWidth} x {window.innerHeight}</p>
+          <p><strong>Device:</strong> {mounted ? (isIOS ? 'iOS' : 'Non-iOS') : 'Loading...'}</p>
+          <p><strong>User Agent:</strong> {mounted ? navigator.userAgent : 'Loading...'}</p>
+          <p><strong>Viewport:</strong> {mounted ? `${window.innerWidth} x ${window.innerHeight}` : 'Loading...'}</p>
           <p><strong>Clicks:</strong> {clickCount}</p>
         </div>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
 
@@ -26,6 +26,22 @@ export const CourseFilters = ({
   onSortChange,
 }: CourseFiltersProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      if (typeof window !== 'undefined') {
+        setIsDesktop(window.innerWidth >= 768)
+      }
+    }
+    
+    checkDesktop()
+    
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkDesktop)
+      return () => window.removeEventListener('resize', checkDesktop)
+    }
+  }, [])
 
   const sortOptions = [
     { value: 'rating', label: 'Highest Rated' },
@@ -58,7 +74,7 @@ export const CourseFilters = ({
 
       {/* Filters Content */}
       <AnimatePresence>
-        {(isExpanded || window.innerWidth >= 768) && (
+        {(isExpanded || isDesktop) && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}

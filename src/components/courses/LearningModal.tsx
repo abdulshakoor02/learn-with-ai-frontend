@@ -69,6 +69,7 @@ export const LearningModal = ({
   // Detect iOS device
   useEffect(() => {
     const checkIOS = () => {
+      if (typeof window === 'undefined') return false
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
       return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
     }
@@ -76,7 +77,7 @@ export const LearningModal = ({
     setIsIOS(isIOSDevice)
     
     // Debug logging for iOS
-    if (isIOSDevice) {
+    if (isIOSDevice && typeof window !== 'undefined') {
       console.log('iOS device detected, applying iOS-specific fixes')
       console.log('Viewport dimensions:', window.innerWidth, 'x', window.innerHeight)
       console.log('Orientation:', window.innerHeight > window.innerWidth ? 'Portrait' : 'Landscape')
@@ -229,7 +230,7 @@ export const LearningModal = ({
       }
     }
 
-    if (isOpen) {
+    if (isOpen && typeof window !== 'undefined') {
       // Use different event listeners for different platforms
       if (isIOS) {
         document.addEventListener('touchend', handleTouchOutside)
@@ -264,7 +265,7 @@ export const LearningModal = ({
       }
       
       // Restore body styles
-      const isMobile = window.innerWidth < 768
+      const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
       const scrollY = document.body.getAttribute('data-scroll-y')
       
       document.body.style.position = ''
@@ -273,7 +274,7 @@ export const LearningModal = ({
       document.body.style.overflow = ''
       document.body.style.overflowX = ''
       
-      if (!isMobile && scrollY) {
+      if (!isMobile && scrollY && typeof window !== 'undefined') {
         window.scrollTo(0, parseInt(scrollY))
         document.body.removeAttribute('data-scroll-y')
       }
