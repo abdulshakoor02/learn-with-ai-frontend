@@ -57,13 +57,12 @@ export const LearningModal = ({
   const [phaseCompleted, setPhaseCompleted] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
   
-  // Direct iOS touch handler - no delays, just force the action
-  const handleIOSTouch = (callback: () => void) => {
-    return () => {
-      console.log('iOS touch handler triggered')
-      // Direct execution - no delays
+  // Simple, direct button handler for iOS
+  const handleButtonClick = (callback: () => void) => {
+    // Use requestAnimationFrame to ensure handler runs
+    requestAnimationFrame(() => {
       callback()
-    }
+    })
   }
 
   // Detect iOS device
@@ -91,6 +90,31 @@ export const LearningModal = ({
         document.head.appendChild(viewportMeta)
       }
       viewportMeta.content = 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover'
+      
+      // Add global touch handler for iOS buttons
+      const handleGlobalTouch = (e: TouchEvent) => {
+        const target = e.target as HTMLElement
+        const button = target.closest('[data-ios-action]')
+        if (button) {
+          e.preventDefault()
+          const action = button.getAttribute('data-ios-action')
+          console.log('iOS button touched:', action)
+          
+          // Trigger click event
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          })
+          button.dispatchEvent(clickEvent)
+        }
+      }
+      
+      document.addEventListener('touchend', handleGlobalTouch, { passive: false })
+      
+      return () => {
+        document.removeEventListener('touchend', handleGlobalTouch)
+      }
     }
   }, [])
 
@@ -419,43 +443,26 @@ export const LearningModal = ({
               )}
             </div>
             {isIOS ? (
-              <div className="ios-button-container">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('iOS Close button clicked')
-                    onClose()
-                  }}
-                  onTouchStart={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('iOS Close button touch start')
-                  }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault()
-                    e.stopPropagation()
-                    console.log('iOS Close button touch end')
-                    onClose()
-                  }}
-                  className="ios-clickable-button ios-portrait-button ios-touch-fix"
-                  style={{
-                    padding: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                    borderRadius: '16px',
-                    border: '3px solid rgba(255, 255, 255, 0.5)',
-                    cursor: 'pointer',
-                    minWidth: '60px',
-                    minHeight: '60px'
-                  }}
-                >
-                  <XMarkIcon className="w-6 h-6 text-white" style={{ pointerEvents: 'none' }} />
-                </button>
-              </div>
+              <button
+                type="button"
+                data-ios-action="close"
+                onClick={() => handleButtonClick(onClose)}
+                className="ios-button ios-portrait-fix p-3 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0"
+                aria-label="Close modal"
+                style={{
+                  minWidth: '48px',
+                  minHeight: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '12px',
+                  cursor: 'pointer'
+                }}
+              >
+                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </button>
             ) : (
               <button
                 onClick={(e) => {
@@ -590,60 +597,42 @@ export const LearningModal = ({
               </div>
               {learningPlanId && topicTitle ? (
                 isIOS ? (
-                  <div className="ios-button-container">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        if (!isCompleting && !isCompleted) {
-                          console.log('iOS Save button clicked')
-                          handleComplete()
-                        }
-                      }}
-                      onTouchStart={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('iOS Save button touch start')
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        if (!isCompleting && !isCompleted) {
-                          console.log('iOS Save button touch end')
-                          handleComplete()
-                        }
-                      }}
-                      disabled={isCompleting || isCompleted}
-                      className={`ios-clickable-button ios-portrait-button ios-touch-fix px-6 py-4 rounded-lg font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto ${
-                        isCompleted
-                          ? 'bg-green-600 text-white border border-green-400'
-                          : isCompleting
-                          ? 'bg-gray-600 text-white cursor-not-allowed border border-gray-400'
-                          : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white border border-purple-400'
-                      }`}
-                      style={{
-                        pointerEvents: isCompleting || isCompleted ? 'none' : 'auto',
-                        cursor: isCompleting || isCompleted ? 'default' : 'pointer',
-                        opacity: isCompleting || isCompleted ? 0.6 : 1,
-                        minHeight: '60px'
-                      }}
-                    >
-                      {isCompleting ? (
-                        <>
-                          <ArrowPathIcon className="w-4 h-4 animate-spin" style={{ pointerEvents: 'none' }} />
-                          <span style={{ pointerEvents: 'none' }}>Saving...</span>
-                        </>
-                      ) : isCompleted ? (
-                        <>
-                          <CheckIcon className="w-4 h-4" style={{ pointerEvents: 'none' }} />
-                          <span style={{ pointerEvents: 'none' }}>Completed</span>
-                        </>
-                      ) : (
-                        <span style={{ pointerEvents: 'none' }}>Save & Continue</span>
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    data-ios-action="save"
+                    onClick={() => {
+                      if (!isCompleting && !isCompleted) {
+                        handleButtonClick(handleComplete)
+                      }
+                    }}
+                    disabled={isCompleting || isCompleted}
+                    className={`ios-button ios-portrait-fix px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
+                      isCompleted
+                        ? 'bg-green-600 text-white border border-green-400'
+                        : isCompleting
+                        ? 'bg-gray-600 text-white cursor-not-allowed border border-gray-400'
+                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border border-purple-400'
+                    }`}
+                    style={{
+                      minHeight: '48px',
+                      pointerEvents: isCompleting || isCompleted ? 'none' : 'auto',
+                      cursor: isCompleting || isCompleted ? 'default' : 'pointer'
+                    }}
+                  >
+                    {isCompleting ? (
+                      <>
+                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : isCompleted ? (
+                      <>
+                        <CheckIcon className="w-4 h-4" />
+                        <span>Completed</span>
+                      </>
+                    ) : (
+                      <span>Save & Continue</span>
+                    )}
+                  </button>
                 ) : (
                   <button
                     onClick={(e) => {
@@ -685,35 +674,18 @@ export const LearningModal = ({
                 )
               ) : (
                 isIOS ? (
-                  <div className="ios-button-container">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('iOS Continue button clicked')
-                        onClose()
-                      }}
-                      onTouchStart={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('iOS Continue button touch start')
-                      }}
-                      onTouchEnd={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        console.log('iOS Continue button touch end')
-                        onClose()
-                      }}
-                      className="ios-clickable-button ios-portrait-button ios-touch-fix px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg border border-purple-400 font-medium text-sm sm:text-base w-full sm:w-auto"
-                      style={{
-                        cursor: 'pointer',
-                        minHeight: '60px'
-                      }}
-                    >
-                      <span style={{ pointerEvents: 'none' }}>Continue Learning</span>
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    data-ios-action="continue"
+                    onClick={() => handleButtonClick(onClose)}
+                    className="ios-button ios-portrait-fix px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
+                    style={{
+                      minHeight: '48px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Continue Learning
+                  </button>
                 ) : (
                   <button
                     onClick={(e) => {
