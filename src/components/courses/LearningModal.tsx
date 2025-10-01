@@ -13,7 +13,6 @@ import {
   CheckIcon
 } from '@heroicons/react/24/outline'
 import { LearningPlansService } from '@/services/api'
-import '@/styles/ios-modal-fixes.css'
 
 interface Module {
   id: string
@@ -55,68 +54,8 @@ export const LearningModal = ({
   const [isCompleting, setIsCompleting] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [phaseCompleted, setPhaseCompleted] = useState(false)
-  const [isIOS, setIsIOS] = useState(false)
-  
-  // Simple, direct button handler for iOS
-  const handleButtonClick = (callback: () => void) => {
-    // Use requestAnimationFrame to ensure handler runs
-    requestAnimationFrame(() => {
-      callback()
-    })
-  }
 
-  // Detect iOS device
-  useEffect(() => {
-    const checkIOS = () => {
-      if (typeof window === 'undefined') return false
-      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
-      return /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
-    }
-    const isIOSDevice = checkIOS()
-    setIsIOS(isIOSDevice)
-    
-    // Debug logging for iOS
-    if (isIOSDevice && typeof window !== 'undefined') {
-      console.log('iOS device detected, applying iOS-specific fixes')
-      console.log('Viewport dimensions:', window.innerWidth, 'x', window.innerHeight)
-      console.log('Orientation:', window.innerHeight > window.innerWidth ? 'Portrait' : 'Landscape')
-      console.log('Device pixel ratio:', window.devicePixelRatio)
-      
-      // Add viewport meta tag fix for iOS if not present
-      let viewportMeta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement
-      if (!viewportMeta) {
-        viewportMeta = document.createElement('meta')
-        viewportMeta.name = 'viewport'
-        document.head.appendChild(viewportMeta)
-      }
-      viewportMeta.content = 'width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover'
-      
-      // Add global touch handler for iOS buttons
-      const handleGlobalTouch = (e: TouchEvent) => {
-        const target = e.target as HTMLElement
-        const button = target.closest('[data-ios-action]')
-        if (button) {
-          e.preventDefault()
-          const action = button.getAttribute('data-ios-action')
-          console.log('iOS button touched:', action)
-          
-          // Trigger click event
-          const clickEvent = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-          })
-          button.dispatchEvent(clickEvent)
-        }
-      }
-      
-      document.addEventListener('touchend', handleGlobalTouch, { passive: false })
-      
-      return () => {
-        document.removeEventListener('touchend', handleGlobalTouch)
-      }
-    }
-  }, [])
+  // Simplified: No iOS-specific detection or handling needed
 
   // Reset completion state when modal opens
   useEffect(() => {
@@ -230,48 +169,18 @@ export const LearningModal = ({
     return () => document.removeEventListener('keydown', handleEscape)
   }, [isOpen, onClose])
 
-  // Handle click outside modal
+  // Handle body scroll lock
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      // Only close on backdrop click, not when clicking outside modal container
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        // Check if the click was on the backdrop area specifically
-        const target = e.target as Element
-        if (target.classList.contains('modal-backdrop-mobile') || 
-            target.closest('.modal-container-mobile') === e.currentTarget) {
-          onClose()
-        }
-      }
-    }
-    
-    const handleTouchOutside = (e: TouchEvent) => {
-      // Handle touch events for iOS
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        const target = e.target as Element
-        if (target.classList.contains('modal-backdrop-mobile')) {
-          onClose()
-        }
-      }
-    }
-
     if (isOpen && typeof window !== 'undefined') {
-      // Use different event listeners for different platforms
-      if (isIOS) {
-        document.addEventListener('touchend', handleTouchOutside)
-      } else {
-        document.addEventListener('mousedown', handleClickOutside)
-      }
-      
       // Different approach for mobile vs desktop
       const isMobile = window.innerWidth < 768
       
       if (isMobile) {
-        // On mobile: Only prevent horizontal overflow and elastic bouncing
+        // On mobile: Only prevent horizontal overflow
         document.body.style.overflowX = 'hidden'
         document.body.style.position = 'relative'
-        // Allow vertical scrolling on mobile so users can reposition the modal
       } else {
-        // On desktop: Use the fixed position approach to prevent background scrolling
+        // On desktop: Prevent all scrolling
         const scrollY = window.scrollY
         document.body.style.position = 'fixed'
         document.body.style.top = `-${scrollY}px`
@@ -282,12 +191,6 @@ export const LearningModal = ({
     }
 
     return () => {
-      if (isIOS) {
-        document.removeEventListener('touchend', handleTouchOutside)
-      } else {
-        document.removeEventListener('mousedown', handleClickOutside)
-      }
-      
       // Restore body styles
       const isMobile = typeof window !== 'undefined' ? window.innerWidth < 768 : false
       const scrollY = document.body.getAttribute('data-scroll-y')
@@ -303,7 +206,7 @@ export const LearningModal = ({
         document.body.removeAttribute('data-scroll-y')
       }
     }
-  }, [isOpen, onClose, isIOS])
+  }, [isOpen])
 
   const getModuleIcon = (type: string) => {
     switch (type) {
@@ -360,58 +263,34 @@ export const LearningModal = ({
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex justify-center p-4 sm:p-6 modal-container-mobile"
       >
-        {/* Backdrop */}
+        {/* Backdrop - pointer-events: none to let touches pass through to modal */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 modal-backdrop-mobile"
+          className="fixed inset-0 bg-black/60"
           style={{
             backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)', // iOS Safari specific
-            transform: 'translateZ(0)', // Force hardware layer
-            WebkitTransform: 'translateZ(0)',
-            pointerEvents: 'auto', // Ensure backdrop can receive events
-            touchAction: 'none' // Prevent iOS scroll during backdrop interaction
-          }}
-          onClick={(e) => {
-            // Only close if clicking directly on backdrop, not on modal content
-            if (e.target === e.currentTarget) {
-              onClose()
-            }
-          }}
-          onTouchStart={(e) => {
-            // Prevent iOS touch issues with backdrop
-            if (e.target === e.currentTarget) {
-              e.stopPropagation()
-            }
+            WebkitBackdropFilter: 'blur(4px)',
+            pointerEvents: 'none', // CRITICAL: Let touches pass through to modal
+            zIndex: -1 // Keep backdrop behind modal
           }}
         />
 
-        {/* Modal */}
+        {/* Modal - receives all touch events */}
         <motion.div
           ref={modalRef}
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className={`relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden ${isIOS ? 'ios-modal-fix ios-modal-container' : ''}`}
+          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
           style={{
             height: '80vh',
             maxHeight: '80vh',
             margin: '10vh auto',
-            transform: 'translate3d(0, 0, 0)',
-            backfaceVisibility: 'hidden',
-            WebkitBackfaceVisibility: 'hidden',
-            WebkitTransform: 'translate3d(0, 0, 0)',
-            isolation: 'isolate',
-            willChange: 'transform',
-            pointerEvents: 'auto',
-            touchAction: 'pan-y',
-            contain: 'layout style paint'
-          }}
-          onTouchStart={(e) => {
-            e.stopPropagation()
+            pointerEvents: 'auto', // CRITICAL: Modal receives all touch events
+            touchAction: 'pan-y' // Allow vertical scrolling
           }}
         >
           {/* Header */}
@@ -442,52 +321,26 @@ export const LearningModal = ({
                 </>
               )}
             </div>
-            {isIOS ? (
-              <button
-                type="button"
-                data-ios-action="close"
-                onClick={() => handleButtonClick(onClose)}
-                className="ios-button ios-portrait-fix p-3 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0"
-                aria-label="Close modal"
-                style={{
-                  minWidth: '48px',
-                  minHeight: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '12px',
-                  cursor: 'pointer'
-                }}
-              >
-                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  console.log('Close button clicked')
-                  onClose()
-                }}
-                className="p-2 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0"
-                aria-label="Close modal"
-                style={{
-                  minWidth: '48px',
-                  minHeight: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'rgba(0, 0, 0, 0.4)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '12px',
-                  cursor: 'pointer'
-                }}
-              >
-                <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-3 hover:bg-white/10 rounded-xl transition-colors duration-200 flex-shrink-0"
+              aria-label="Close modal"
+              style={{
+                minWidth: '48px',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                WebkitTapHighlightColor: 'rgba(255, 255, 255, 0.2)'
+              }}
+            >
+              <XMarkIcon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </button>
           </div>
 
           {/* Content */}
@@ -567,19 +420,11 @@ export const LearningModal = ({
           {/* Footer */}
           {content && !isLoading && !error && (
             <div 
-              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0 mobile-button-fix"
+              className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0"
               style={{
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 999,
-                minHeight: '60px',
                 backgroundColor: 'rgba(0, 0, 0, 0.4)',
                 backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                transform: 'translateZ(0)',
-                WebkitTransform: 'translateZ(0)',
-                isolation: 'isolate',
-                willChange: 'transform'
+                WebkitBackdropFilter: 'blur(12px)'
               }}
             >
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/90">
@@ -596,113 +441,54 @@ export const LearningModal = ({
                 </span>
               </div>
               {learningPlanId && topicTitle ? (
-                isIOS ? (
-                  <button
-                    type="button"
-                    data-ios-action="save"
-                    onClick={() => {
-                      if (!isCompleting && !isCompleted) {
-                        handleButtonClick(handleComplete)
-                      }
-                    }}
-                    disabled={isCompleting || isCompleted}
-                    className={`ios-button ios-portrait-fix px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
-                      isCompleted
-                        ? 'bg-green-600 text-white border border-green-400'
-                        : isCompleting
-                        ? 'bg-gray-600 text-white cursor-not-allowed border border-gray-400'
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border border-purple-400'
-                    }`}
-                    style={{
-                      minHeight: '48px',
-                      pointerEvents: isCompleting || isCompleted ? 'none' : 'auto',
-                      cursor: isCompleting || isCompleted ? 'default' : 'pointer'
-                    }}
-                  >
-                    {isCompleting ? (
-                      <>
-                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : isCompleted ? (
-                      <>
-                        <CheckIcon className="w-4 h-4" />
-                        <span>Completed</span>
-                      </>
-                    ) : (
-                      <span>Save & Continue</span>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      if (!isCompleting && !isCompleted) {
-                        console.log('Save button clicked')
-                        handleComplete()
-                      }
-                    }}
-                    disabled={isCompleting || isCompleted}
-                    className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
-                      isCompleted
-                        ? 'bg-green-600 text-white border border-green-400'
-                        : isCompleting
-                        ? 'bg-gray-600 text-white cursor-not-allowed border border-gray-400'
-                        : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border border-purple-400'
-                    }`}
-                    style={{
-                      minHeight: '48px',
-                      pointerEvents: isCompleting || isCompleted ? 'none' : 'auto',
-                      cursor: isCompleting || isCompleted ? 'default' : 'pointer'
-                    }}
-                  >
-                    {isCompleting ? (
-                      <>
-                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                        <span>Saving...</span>
-                      </>
-                    ) : isCompleted ? (
-                      <>
-                        <CheckIcon className="w-4 h-4" />
-                        <span>Completed</span>
-                      </>
-                    ) : (
-                      <span>Save & Continue</span>
-                    )}
-                  </button>
-                )
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!isCompleting && !isCompleted) {
+                      handleComplete()
+                    }
+                  }}
+                  disabled={isCompleting || isCompleted}
+                  className={`px-4 py-3 rounded-lg transition-all duration-200 font-medium flex items-center justify-center space-x-2 text-sm sm:text-base w-full sm:w-auto shadow-lg ${
+                    isCompleted
+                      ? 'bg-green-600 text-white border border-green-400'
+                      : isCompleting
+                      ? 'bg-gray-600 text-white cursor-not-allowed border border-gray-400'
+                      : 'bg-gradient-to-r from-purple-600 to-blue-600 text-white hover:from-purple-700 hover:to-blue-700 border border-purple-400'
+                  }`}
+                  style={{
+                    minHeight: '48px',
+                    cursor: isCompleting || isCompleted ? 'default' : 'pointer',
+                    WebkitTapHighlightColor: 'rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  {isCompleting ? (
+                    <>
+                      <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : isCompleted ? (
+                    <>
+                      <CheckIcon className="w-4 h-4" />
+                      <span>Completed</span>
+                    </>
+                  ) : (
+                    <span>Save & Continue</span>
+                  )}
+                </button>
               ) : (
-                isIOS ? (
-                  <button
-                    type="button"
-                    data-ios-action="continue"
-                    onClick={() => handleButtonClick(onClose)}
-                    className="ios-button ios-portrait-fix px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
-                    style={{
-                      minHeight: '48px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Continue Learning
-                  </button>
-                ) : (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      console.log('Continue button clicked')
-                      onClose()
-                    }}
-                    className="px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
-                    style={{
-                      minHeight: '48px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Continue Learning
-                  </button>
-                )
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 font-medium text-sm sm:text-base w-full sm:w-auto shadow-lg border border-purple-400"
+                  style={{
+                    minHeight: '48px',
+                    cursor: 'pointer',
+                    WebkitTapHighlightColor: 'rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  Continue Learning
+                </button>
               )}
             </div>
           )}
