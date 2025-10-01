@@ -355,9 +355,10 @@ export const LearningModal = ({
           {/* Content */}
           <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0"
             style={{
-              maxHeight: isPortrait ? 'calc(94vh - 220px)' : 'calc(80vh - 200px)', // Reserve space for header + footer
+              maxHeight: isPortrait ? 'calc(94vh - 300px)' : 'calc(80vh - 250px)', // Reserve MORE space for header + footer
               overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
+              flexShrink: 1 // Allow content to shrink if needed
             }}
           >
             {isLoading && (
@@ -437,12 +438,14 @@ export const LearningModal = ({
             <div 
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0"
               style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                backgroundColor: 'rgba(0, 0, 0, 0.95)',
                 backdropFilter: 'blur(12px)',
                 WebkitBackdropFilter: 'blur(12px)',
-                position: 'relative',
-                zIndex: 10,
-                minHeight: '80px'
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 100, // Higher z-index to be above content
+                minHeight: '80px',
+                marginTop: 'auto' // Push to bottom
               }}
             >
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/90">
