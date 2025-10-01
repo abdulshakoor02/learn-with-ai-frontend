@@ -257,23 +257,17 @@ export const LearningModal = ({
 
   return (
     <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex justify-center p-4 sm:p-6 modal-container-mobile"
-      >
-        {/* Backdrop - pointer-events: none to let touches pass through to modal */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        {/* Backdrop - purely visual, doesn't intercept events */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60"
+          className="absolute inset-0 bg-black/60"
           style={{
             backdropFilter: 'blur(4px)',
             WebkitBackdropFilter: 'blur(4px)',
-            pointerEvents: 'none', // CRITICAL: Let touches pass through to modal
-            zIndex: -1 // Keep backdrop behind modal
+            pointerEvents: 'none' // Let touches pass through
           }}
         />
 
@@ -284,11 +278,10 @@ export const LearningModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
+          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden z-10"
           style={{
             height: '80vh',
             maxHeight: '80vh',
-            margin: '10vh auto',
             pointerEvents: 'auto', // CRITICAL: Modal receives all touch events
             touchAction: 'pan-y' // Allow vertical scrolling
           }}
@@ -493,7 +486,7 @@ export const LearningModal = ({
             </div>
           )}
         </motion.div>
-      </motion.div>
+      </div>
     </AnimatePresence>
   )
 }
