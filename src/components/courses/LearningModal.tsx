@@ -288,10 +288,10 @@ export const LearningModal = ({
         className="fixed glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
         style={{
           zIndex: 9999,
-          top: isPortrait ? '3vh' : '10vh',
+          top: isPortrait ? '2vh' : '10vh', // Reduced from 3vh
           left: isMobile ? '4%' : '50%',
           width: isMobile ? '92%' : 'min(90%, 896px)', // max-w-4xl is 896px
-          maxHeight: isPortrait ? '94vh' : '80vh',
+          maxHeight: isPortrait ? '88vh' : '80vh', // Reduced from 94vh to ensure footer visibility
           height: 'auto',
           transform: isMobile ? 'none' : 'translateX(-50%)', // Center on desktop only
           pointerEvents: 'auto',
@@ -352,13 +352,14 @@ export const LearningModal = ({
             </button>
           </div>
 
-          {/* Content */}
+          {/* Content - Let flexbox handle sizing */}
           <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0"
             style={{
-              maxHeight: isPortrait ? 'calc(94vh - 300px)' : 'calc(80vh - 250px)', // Reserve MORE space for header + footer
+              // No maxHeight - let flexbox distribute space
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch',
-              flexShrink: 1 // Allow content to shrink if needed
+              flexShrink: 1,
+              flexGrow: 1
             }}
           >
             {isLoading && (
