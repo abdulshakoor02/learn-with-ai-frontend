@@ -255,48 +255,53 @@ export const LearningModal = ({
 
   if (!isOpen) return null
 
+  // Check if iOS and portrait mode
+  const isPortrait = typeof window !== 'undefined' && window.innerHeight > window.innerWidth
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
   return (
     <AnimatePresence>
-      <div 
-        className="fixed inset-0 z-50 overflow-y-auto"
+      {/* Backdrop - completely separate from modal */}
+      <motion.div
+        key="modal-backdrop"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed inset-0 bg-black/60"
         style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '1rem',
-          minHeight: '100vh',
-          minHeight: '100dvh' // Use dynamic viewport height for iOS
+          zIndex: 9998,
+          backdropFilter: isMobile ? 'none' : 'blur(4px)', // No blur on mobile for performance
+          WebkitBackdropFilter: isMobile ? 'none' : 'blur(4px)',
+          pointerEvents: 'none' // Let touches pass through to modal
+        }}
+      />
+
+      {/* Modal - direct fixed positioning, no wrapper container */}
+      <motion.div
+        key="modal-content"
+        ref={modalRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="fixed glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
+        style={{
+          zIndex: 9999,
+          top: isPortrait ? '3vh' : '10vh',
+          left: isMobile ? '4%' : '50%',
+          width: isMobile ? '92%' : 'min(90%, 896px)', // max-w-4xl is 896px
+          maxHeight: isPortrait ? '94vh' : '80vh',
+          height: 'auto',
+          transform: isMobile ? 'none' : 'translateX(-50%)', // Center on desktop only
+          pointerEvents: 'auto',
+          touchAction: 'pan-y',
+          ...(isMobile && {
+            // Mobile-specific overrides
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          })
         }}
       >
-        {/* Backdrop - purely visual, doesn't intercept events */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60"
-          style={{
-            backdropFilter: 'blur(4px)',
-            WebkitBackdropFilter: 'blur(4px)',
-            pointerEvents: 'none' // Let touches pass through
-          }}
-        />
-
-        {/* Modal - receives all touch events */}
-        <motion.div
-          ref={modalRef}
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden z-10 my-4"
-          style={{
-            maxHeight: 'calc(100vh - 2rem)',
-            maxHeight: 'calc(100dvh - 2rem)', // Use dynamic viewport height
-            height: 'auto',
-            pointerEvents: 'auto', // CRITICAL: Modal receives all touch events
-            touchAction: 'pan-y' // Allow vertical scrolling
-          }}
-        >
           {/* Header */}
           <div className="flex items-center justify-between p-3 sm:p-4 md:p-6 border-b border-white/20 flex-shrink-0 modal-header-mobile">
             <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
@@ -350,7 +355,7 @@ export const LearningModal = ({
           {/* Content */}
           <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0"
             style={{
-              maxHeight: 'calc(100dvh - 200px)', // Ensure content doesn't push footer out
+              maxHeight: isPortrait ? 'calc(94vh - 220px)' : 'calc(80vh - 200px)', // Reserve space for header + footer
               overflowY: 'auto',
               WebkitOverflowScrolling: 'touch'
             }}
@@ -506,7 +511,6 @@ export const LearningModal = ({
             </div>
           )}
         </motion.div>
-      </div>
     </AnimatePresence>
   )
 }
