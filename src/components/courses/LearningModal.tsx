@@ -288,11 +288,10 @@ export const LearningModal = ({
         className="fixed glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden"
         style={{
           zIndex: 9999,
-          top: isPortrait ? '2vh' : '10vh', // Reduced from 3vh
+          top: isPortrait ? '5vh' : '10vh', // Safe margin from top
           left: isMobile ? '4%' : '50%',
           width: isMobile ? '92%' : 'min(90%, 896px)', // max-w-4xl is 896px
-          maxHeight: isPortrait ? '88vh' : '80vh', // Reduced from 94vh to ensure footer visibility
-          height: 'auto',
+          height: isPortrait ? '75vh' : '80vh', // FIXED height - no auto, no maxHeight
           transform: isMobile ? 'none' : 'translateX(-50%)', // Center on desktop only
           pointerEvents: 'auto',
           touchAction: 'pan-y',
@@ -440,13 +439,9 @@ export const LearningModal = ({
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0"
               style={{
                 backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                position: 'sticky',
-                bottom: 0,
-                zIndex: 100, // Higher z-index to be above content
-                minHeight: '80px',
-                marginTop: 'auto' // Push to bottom
+                backdropFilter: isMobile ? 'none' : 'blur(12px)',
+                WebkitBackdropFilter: isMobile ? 'none' : 'blur(12px)',
+                minHeight: '80px'
               }}
             >
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/90">
