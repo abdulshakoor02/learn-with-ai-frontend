@@ -257,13 +257,23 @@ export const LearningModal = ({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div 
+        className="fixed inset-0 z-50 overflow-y-auto"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '1rem',
+          minHeight: '100vh',
+          minHeight: '100dvh' // Use dynamic viewport height for iOS
+        }}
+      >
         {/* Backdrop - purely visual, doesn't intercept events */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="absolute inset-0 bg-black/60"
+          className="fixed inset-0 bg-black/60"
           style={{
             backdropFilter: 'blur(4px)',
             WebkitBackdropFilter: 'blur(4px)',
@@ -278,10 +288,11 @@ export const LearningModal = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden z-10"
+          className="relative w-full max-w-4xl glass-primary rounded-2xl border border-white/20 flex flex-col overflow-hidden z-10 my-4"
           style={{
-            height: '80vh',
-            maxHeight: '80vh',
+            maxHeight: 'calc(100vh - 2rem)',
+            maxHeight: 'calc(100dvh - 2rem)', // Use dynamic viewport height
+            height: 'auto',
             pointerEvents: 'auto', // CRITICAL: Modal receives all touch events
             touchAction: 'pan-y' // Allow vertical scrolling
           }}
@@ -337,7 +348,13 @@ export const LearningModal = ({
           </div>
 
           {/* Content */}
-          <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0 modal-scroll-fix">
+          <div className="p-3 sm:p-4 md:p-6 flex-1 overflow-y-auto min-h-0"
+            style={{
+              maxHeight: 'calc(100dvh - 200px)', // Ensure content doesn't push footer out
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
             {isLoading && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -410,14 +427,17 @@ export const LearningModal = ({
             )}
           </div>
 
-          {/* Footer */}
+          {/* Footer - Always at bottom, always visible */}
           {content && !isLoading && !error && (
             <div 
               className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 md:p-6 border-t border-white/20 flex-shrink-0"
               style={{
-                backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
                 backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)'
+                WebkitBackdropFilter: 'blur(12px)',
+                position: 'relative',
+                zIndex: 10,
+                minHeight: '80px'
               }}
             >
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-white/90">
