@@ -308,6 +308,7 @@ export default function CourseDetailPage() {
                 sections={course.phases.map((phase, index) => ({
                   id: `phase-${index}`,
                   title: phase.focus,
+                  completed: phase.status || false, // Include phase completion status
                   modules: phase.topics?.map((topic: any, topicIndex: number) => ({
                     id: `phase-${index}-topic-${topicIndex}`,
                     title: topic.title || topic,
