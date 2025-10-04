@@ -1,43 +1,74 @@
-import { apiRequest, OpenAIJsonResponse } from '@/lib/auth'
-import { OpenAIJsonRequest, LearningPlanData } from '@/lib/hooks'
-import { getSession } from 'next-auth/react'
-import { AuthUtils } from './authUtils'
-import { UserData, SessionData } from './authTypes'
+import { apiRequest, OpenAIJsonResponse } from "@/lib/auth";
+import { OpenAIJsonRequest, LearningPlanData } from "@/lib/hooks";
+import { getSession } from "next-auth/react";
+import { AuthUtils } from "./authUtils";
+import { UserData, SessionData } from "./authTypes";
 
 // OpenAI JSON endpoint service
 export class OpenAIService {
   static async generateJson(request: OpenAIJsonRequest): Promise<any> {
     try {
       const response = await apiRequest<OpenAIJsonResponse>(`/openai/json`, {
-        method: 'POST',
-        body: JSON.stringify(request)
-      })
-      return response.data
+        method: "POST",
+        body: JSON.stringify(request),
+      });
+      return response.data;
     } catch (error) {
-      console.error('OpenAI JSON generation error:', error)
-      throw new Error('Failed to generate response from OpenAI')
+      console.error("OpenAI JSON generation error:", error);
+      throw new Error("Failed to generate response from OpenAI");
     }
   }
 
-  static async generateLearningContent(moduleTitle: string, moduleType: string, sectionTitle?: string): Promise<string> {
+  static async generateLearningContent(
+    moduleTitle: string,
+    moduleType: string,
+    sectionTitle?: string,
+  ): Promise<string> {
     try {
-      const prompt = this.createLearningPrompt(moduleTitle, moduleType, sectionTitle)
-      
+      console.log("moduleTitle", moduleTitle);
+      console.log("moduleType", moduleType);
+      console.log("sectionTitle", sectionTitle);
+      const prompt = this.createLearningPrompt(
+        moduleTitle,
+        moduleType,
+        sectionTitle,
+      );
+
+      const cacheData = await apiRequest(`/topics/search`, {
+        method: "POST",
+        body: JSON.stringify({
+          topicName: moduleTitle,
+        }),
+      });
+
+      if (cacheData?.content) {
+        return cacheData.content;
+      }
+
       const response = await apiRequest(`/openai/chat`, {
-        method: 'POST',
+        method: "POST",
         body: JSON.stringify({
           messages: [
             {
-              role: 'system',
-              content: 'You are an expert educational content creator and tutor. Create comprehensive, engaging, and structured learning content that is educational and easy to understand. Always provide practical examples and clear explanations.'
+              role: "system",
+              content:
+                "You are an expert educational content creator and tutor. Create comprehensive, engaging, and structured learning content that is educational and easy to understand. Always provide practical examples and clear explanations.",
             },
             {
-              role: 'user',
-              content: prompt
-            }
-          ]
-        })
-      })
+              role: "user",
+              content: prompt,
+            },
+          ],
+        }),
+      });
+
+      await apiRequest(`/topics`, {
+        method: "POST",
+        body: JSON.stringify({
+          topicName: moduleTitle,
+          content: response.data,
+        }),
+      });
 
       // Extract the content from OpenAI's response format
       // if (response?.choices?.[0]?.message?.content) {
@@ -46,21 +77,25 @@ export class OpenAIService {
       //   throw new Error('No content received from OpenAI')
       // }
       if (response?.data) {
-        return response.data
+        return response.data;
       } else {
-        throw new Error('No content received from OpenAI')
+        throw new Error("No content received from OpenAI");
       }
     } catch (error) {
-      console.error('Learning content generation error:', error)
-      throw new Error('Failed to generate learning content. Please try again.')
+      console.error("Learning content generation error:", error);
+      throw new Error("Failed to generate learning content. Please try again.");
     }
   }
 
-  private static createLearningPrompt(moduleTitle: string, moduleType: string, sectionTitle?: string): string {
+  private static createLearningPrompt(
+    moduleTitle: string,
+    moduleType: string,
+    sectionTitle?: string,
+  ): string {
     // const baseContext = sectionTitle ? `This is part of the "${sectionTitle}" section.` : ''
-    
+
     switch (moduleType) {
-      case 'video':
+      case "video":
         return `Create a comprehensive video lesson script for "${moduleTitle}"
 
 Please structure the content as follows:
@@ -71,9 +106,9 @@ Please structure the content as follows:
 5. **Summary** - Quick recap of main points
 6. **Next Steps** - What to focus on after this lesson
 
-Make it engaging, educational, and easy to follow. Include code examples if relevant to the topic.`
+Make it engaging, educational, and easy to follow. Include code examples if relevant to the topic.`;
 
-      case 'reading':
+      case "reading":
         return `Create detailed reading material for "${moduleTitle}"
 
 Please provide:
@@ -85,9 +120,9 @@ Please provide:
 6. **Common Pitfalls** - What to avoid
 7. **Further Reading** - Suggested resources for deeper learning
 
-Make it comprehensive yet accessible, with clear headings and well-structured content.`
+Make it comprehensive yet accessible, with clear headings and well-structured content.`;
 
-      case 'quiz':
+      case "quiz":
         return `Create an interactive quiz for "${moduleTitle}"
 
 Please provide:
@@ -98,9 +133,9 @@ Please provide:
 5. **Key Concepts Review** - Summary of topics covered
 6. **Performance Tips** - How to improve understanding
 
-Make the questions progressively challenging and educational.`
+Make the questions progressively challenging and educational.`;
 
-      case 'assignment':
+      case "assignment":
         return `Create a practical assignment for "${moduleTitle}"
 
 Please provide:
@@ -112,7 +147,7 @@ Please provide:
 6. **Tips for Success** - Best practices and common mistakes to avoid
 7. **Extension Activities** - Optional advanced challenges
 
-Make it practical, achievable, and directly related to the learning objectives.`
+Make it practical, achievable, and directly related to the learning objectives.`;
 
       default:
         return `Create comprehensive learning material for "${moduleTitle}"
@@ -124,75 +159,78 @@ Please provide well-structured educational content that includes:
 4. Important tips and best practices
 5. Summary of key takeaways
 
-Make it engaging, informative, and suitable for learners at various levels.`
+Make it engaging, informative, and suitable for learners at various levels.`;
     }
   }
 
-  static async generateLearningPlan(userGoals: string): Promise<LearningPlanData> {
+  static async generateLearningPlan(
+    userGoals: string,
+  ): Promise<LearningPlanData> {
     const planRequest: OpenAIJsonRequest = {
       messages: [
         {
-          role: 'system',
-          content: 'You are an AI learning assistant that creates personalized learning plans. Generate a structured learning plan based on the user\'s goals.'
+          role: "system",
+          content:
+            "You are an AI learning assistant that creates personalized learning plans. Generate a structured learning plan based on the user's goals.",
         },
         {
-          role: 'user',
-          content: `Create a comprehensive learning plan for: ${userGoals}. Include title, duration, prerequisites, and 3-4 phases with specific focus areas and topics.`
-        }
+          role: "user",
+          content: `Create a comprehensive learning plan for: ${userGoals}. Include title, duration, prerequisites, and 3-4 phases with specific focus areas and topics.`,
+        },
       ],
       schema: {
-        type: 'object',
+        type: "object",
         properties: {
           title: {
-            type: 'string',
-            description: 'The learning plan title'
+            type: "string",
+            description: "The learning plan title",
           },
           duration: {
-            type: 'string',
-            description: 'Total duration (e.g., "3 months" or "12 weeks")'
+            type: "string",
+            description: 'Total duration (e.g., "3 months" or "12 weeks")',
           },
           prerequisites: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'string'
+              type: "string",
             },
-            description: 'Required prerequisites for the learning plan'
+            description: "Required prerequisites for the learning plan",
           },
           phases: {
-            type: 'array',
+            type: "array",
             items: {
-              type: 'object',
+              type: "object",
               properties: {
                 focus: {
-                  type: 'string',
-                  description: 'Phase focus area'
+                  type: "string",
+                  description: "Phase focus area",
                 },
                 duration: {
-                  type: 'string',
-                  description: 'Phase duration'
+                  type: "string",
+                  description: "Phase duration",
                 },
                 topics: {
-                  type: 'array',
+                  type: "array",
                   items: {
-                    type: 'string'
+                    type: "string",
                   },
-                  description: 'Topics covered in this phase'
-                }
+                  description: "Topics covered in this phase",
+                },
               },
-              required: ['focus', 'duration', 'topics']
-            }
-          }
+              required: ["focus", "duration", "topics"],
+            },
+          },
         },
-        required: ['title', 'duration', 'prerequisites', 'phases']
-      }
-    }
+        required: ["title", "duration", "prerequisites", "phases"],
+      },
+    };
 
     try {
-      const response = await this.generateJson(planRequest)
-      return response as LearningPlanData
+      const response = await this.generateJson(planRequest);
+      return response as LearningPlanData;
     } catch (error) {
-      console.error('Learning plan generation failed:', error)
-      throw error
+      console.error("Learning plan generation failed:", error);
+      throw error;
     }
   }
 }
@@ -200,36 +238,36 @@ Make it engaging, informative, and suitable for learners at various levels.`
 // User Registration API service
 export class UsersService {
   static async createUser(userData: {
-    name: string
-    email: string
-    mobile: string
-    password: string
+    name: string;
+    email: string;
+    mobile: string;
+    password: string;
   }): Promise<any> {
     try {
-      const response = await apiRequest('/users', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      })
-      return response
+      const response = await apiRequest("/users", {
+        method: "POST",
+        body: JSON.stringify(userData),
+      });
+      return response;
     } catch (error) {
-      console.error('Create user error:', error)
-      throw error
+      console.error("Create user error:", error);
+      throw error;
     }
   }
 
   static async loginUser(credentials: {
-    email: string
-    password: string
+    email: string;
+    password: string;
   }): Promise<{ access_token: string }> {
     try {
-      const response = await apiRequest('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify(credentials)
-      })
-      return response
+      const response = await apiRequest("/auth/login", {
+        method: "POST",
+        body: JSON.stringify(credentials),
+      });
+      return response;
     } catch (error) {
-      console.error('Login user error:', error)
-      throw error
+      console.error("Login user error:", error);
+      throw error;
     }
   }
 }
@@ -239,20 +277,20 @@ export class LearningPlansService {
   static async createLearningPlan(planData: LearningPlanData): Promise<any> {
     try {
       // Try multiple approaches to get user data
-      let userData: UserData | null = null
+      let userData: UserData | null = null;
 
       // Approach 1: Check localStorage (client-side)
-      if (typeof window !== 'undefined') {
-        const localUserData = localStorage.getItem('user')
+      if (typeof window !== "undefined") {
+        const localUserData = localStorage.getItem("user");
         if (localUserData) {
           try {
-            const parsedUser = JSON.parse(localUserData)
+            const parsedUser = JSON.parse(localUserData);
             if (parsedUser?._id) {
-              userData = parsedUser
-              console.log('User found in localStorage:', userData._id)
+              userData = parsedUser;
+              console.log("User found in localStorage:", userData._id);
             }
           } catch (parseError) {
-            console.error('Error parsing user from localStorage:', parseError)
+            console.error("Error parsing user from localStorage:", parseError);
           }
         }
       }
@@ -260,136 +298,152 @@ export class LearningPlansService {
       // Approach 2: Check for session data (if NextAuth is available)
       if (!userData) {
         try {
-          const session = await getSession()
+          const session = await getSession();
           if (session?.user) {
             userData = {
               _id: session.user.id,
               name: session.user.name!,
               email: session.user.email!,
-              mobile: session.user.mobile
-            }
-            console.log('User found from session:', userData._id)
+              mobile: session.user.mobile,
+            };
+            console.log("User found from session:", userData._id);
           }
         } catch (sessionError) {
-          console.warn('Session not available or error getting session:', sessionError)
+          console.warn(
+            "Session not available or error getting session:",
+            sessionError,
+          );
         }
       }
 
       // Approach 3: Check our auth utilities
       if (!userData) {
-        userData = await AuthUtils.getUserDataAsync()
+        userData = await AuthUtils.getUserDataAsync();
         if (userData) {
-          console.log('User found from auth utilities:', userData._id)
+          console.log("User found from auth utilities:", userData._id);
         }
       }
 
       // Fallback: Create a demo user ID for testing
       if (!userData?._id) {
-        console.warn('No authenticated user found. Using demo user for testing.')
+        console.warn(
+          "No authenticated user found. Using demo user for testing.",
+        );
         // This should only happen in development
-        userData = AuthUtils.getDemoUserData()
+        userData = AuthUtils.getDemoUserData();
       }
 
-      const response = await apiRequest('/learning-plans', {
-        method: 'POST',
+      const response = await apiRequest("/learning-plans", {
+        method: "POST",
         body: JSON.stringify({
           ...planData,
-          userId: userData._id
-        })
-      })
-      return response
+          userId: userData._id,
+        }),
+      });
+      return response;
     } catch (error) {
-      console.error('Create learning plan error:', error)
-      throw new Error('Failed to create learning plan')
+      console.error("Create learning plan error:", error);
+      throw new Error("Failed to create learning plan");
     }
   }
 
   static async getLearningPlans(userId?: string): Promise<any[]> {
     try {
-      let targetUserId = userId
+      let targetUserId = userId;
 
       // If no userId provided, try to get current user
       if (!targetUserId) {
-        const userData = await AuthUtils.getUserDataAsync()
-        targetUserId = userData?._id
+        const userData = await AuthUtils.getUserDataAsync();
+        targetUserId = userData?._id;
       }
 
-      const queryParam = targetUserId ? `?userId=${targetUserId}` : ''
-      const response = await apiRequest(`/learning-plans${queryParam}`)
-      return response as any[]
+      const queryParam = targetUserId ? `?userId=${targetUserId}` : "";
+      const response = await apiRequest(`/learning-plans${queryParam}`);
+      return response as any[];
     } catch (error) {
-      console.error('Get learning plans error:', error)
-      throw new Error('Failed to fetch learning plans')
+      console.error("Get learning plans error:", error);
+      throw new Error("Failed to fetch learning plans");
     }
   }
 
   static async getLearningPlanById(planId: string): Promise<any> {
     try {
-      const response = await apiRequest(`/learning-plans/${planId}`)
-      return response
+      const response = await apiRequest(`/learning-plans/${planId}`);
+      return response;
     } catch (error) {
-      console.error('Get learning plan error:', error)
-      throw new Error('Failed to fetch learning plan')
+      console.error("Get learning plan error:", error);
+      throw new Error("Failed to fetch learning plan");
     }
   }
 
-  static async updateLearningPlan(planId: string, updates: Partial<LearningPlanData>): Promise<any> {
+  static async updateLearningPlan(
+    planId: string,
+    updates: Partial<LearningPlanData>,
+  ): Promise<any> {
     try {
       const response = await apiRequest(`/learning-plans/${planId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates)
-      })
-      return response
+        method: "PUT",
+        body: JSON.stringify(updates),
+      });
+      return response;
     } catch (error) {
-      console.error('Update learning plan error:', error)
-      throw new Error('Failed to update learning plan')
+      console.error("Update learning plan error:", error);
+      throw new Error("Failed to update learning plan");
     }
   }
 
   static async deleteLearningPlan(planId: string): Promise<boolean> {
     try {
       const response = await apiRequest(`/learning-plans/${planId}`, {
-        method: 'DELETE'
-      })
-      return response === true
+        method: "DELETE",
+      });
+      return response === true;
     } catch (error) {
-      console.error('Delete learning plan error:', error)
-      throw new Error('Failed to delete learning plan')
+      console.error("Delete learning plan error:", error);
+      throw new Error("Failed to delete learning plan");
     }
   }
 
-  static async updateTopicStatus(learningPlanId: string, topicTitle: string, status: boolean): Promise<any> {
+  static async updateTopicStatus(
+    learningPlanId: string,
+    topicTitle: string,
+    status: boolean,
+  ): Promise<any> {
     try {
-      console.log(learningPlanId,topicTitle,status)
-      const response = await apiRequest('/learning-plans/topics/status', {
-        method: 'POST',
+      console.log(learningPlanId, topicTitle, status);
+      const response = await apiRequest("/learning-plans/topics/status", {
+        method: "POST",
         body: JSON.stringify({
           learningPlanId,
           topicTitle,
-          status
-        })
-      })
-      return response
+          status,
+        }),
+      });
+      return response;
     } catch (error) {
-      console.error('Update topic status error:', error)
-      throw new Error('Failed to update topic status')
+      console.error("Update topic status error:", error);
+      throw new Error("Failed to update topic status");
     }
   }
 
-  static async updatePhaseStatus(learningPlanId: string, phaseName: string, status: boolean): Promise<any> {
+  static async updatePhaseStatus(
+    learningPlanId: string,
+    phaseName: string,
+    status: boolean,
+  ): Promise<any> {
     try {
-      const response = await apiRequest('/learning-plans/phases/status', {
-        method: 'POST',
+      const response = await apiRequest("/learning-plans/phases/status", {
+        method: "POST",
         body: JSON.stringify({
           learningPlanId,
           phaseName,
-          status
-        })
-      })
-      return response
+          status,
+        }),
+      });
+      return response;
     } catch (error) {
-      console.error('Update phase status error:', error)
-      throw new Error('Failed to update phase status')
+      console.error("Update phase status error:", error);
+      throw new Error("Failed to update phase status");
     }
   }
 }
